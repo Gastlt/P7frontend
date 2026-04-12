@@ -1,6 +1,10 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { validateSignupData } from '@/app/middleware/validation';
+import { setAuthToken, setUserData } from '@/app/middleware/auth';
+import { signupUser } from '@/lib/api';
 
 export default function SignupPage() {
   const [email, setEmail] = useState('');
@@ -9,37 +13,45 @@ export default function SignupPage() {
   const [phone, setPhone] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
 
-    if (!email || !password || !repeatPassword || !phone) {
-      setError('Por favor completa todos los campos');
-      return;
-    }
+    // Validate input
+    const validation = validateSignupData({
+      email,
+      password,
+      repeatPassword,
+      phone,
+    });
 
-    if (password !== repeatPassword) {
-      setError('Las contraseñas no coinciden');
-      return;
-    }
-
-    if (password.length < 6) {
-      setError('La contraseña debe tener al menos 6 caracteres');
+    if (!validation.isValid) {
+      setError(validation.errors.join(', '));
       return;
     }
 
     setLoading(true);
     try {
-      // Aquí irá tu llamada a la API
-      console.log('Crear cuenta:', { email, password, phone });
-      // const response = await fetch('/api/auth/signup', {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify({ email, password, phone }),
-      // });
+      const response = await signupUser({ email, password, phone });
+
+      // Store auth tokens
+      setAuthToken(response.accessToken, false);
+      if (response.refreshToken) {
+        setAuthToken(response.refreshToken, true);
+      }
+
+      // Store user data
+      if (response.user) {
+        setUserData(response.user);
+      }
+
+      // Redirect to dashboard
+      router.push('/dashboard');
     } catch (err) {
-      setError('Error al crear la cuenta');
+      const errorMessage = err instanceof Error ? err.message : 'Error al crear la cuenta';
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -62,6 +74,7 @@ export default function SignupPage() {
               onChange={(e) => setEmail(e.target.value)}
               placeholder="tu@email.com"
               className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-transparent"
+              disabled={loading}
             />
           </div>
 
@@ -76,6 +89,7 @@ export default function SignupPage() {
               onChange={(e) => setPassword(e.target.value)}
               placeholder="Contraseña"
               className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-transparent"
+              disabled={loading}
             />
           </div>
 
@@ -90,6 +104,7 @@ export default function SignupPage() {
               onChange={(e) => setRepeatPassword(e.target.value)}
               placeholder="Repetir contraseña"
               className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-transparent"
+              disabled={loading}
             />
           </div>
 
@@ -104,6 +119,7 @@ export default function SignupPage() {
               onChange={(e) => setPhone(e.target.value)}
               placeholder="Tu número celular"
               className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-transparent"
+              disabled={loading}
             />
           </div>
 
