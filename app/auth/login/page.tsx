@@ -1,38 +1,49 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { validateLoginData } from '@/app/middleware/validation';
+import { setAuthToken, setUserData } from '@/app/middleware/auth';
+import { loginUser } from '@/lib/api';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
 
-    if (!email || !password) {
-      setError('Por favor completa todos los campos');
-      return;
-    }
-
-    if (password.length < 6) {
-      setError('La contraseña debe tener al menos 6 caracteres');
+    // Validate input
+    const validation = validateLoginData({ email, password });
+    if (!validation.isValid) {
+      setError(validation.errors.join(', '));
       return;
     }
 
     setLoading(true);
     try {
-      // Aquí irá tu llamada a la API
-      console.log('Iniciar sesión:', { email, password });
-      // const response = await fetch('/api/auth/login', {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify({ email, password }),
-      // });
+      const response = await loginUser(email, password);
+
+      // Store auth tokens
+      setAuthToken(response.accessToken, false);
+      if (response.refreshToken) {
+        setAuthToken(response.refreshToken, true);
+      }
+
+      // Store user data
+      if (response.user) {
+        setUserData(response.user);
+      }
+
+      // Redirect to dashboard
+      router.push('/dashboard');
     } catch (err) {
-      setError('Error al iniciar sesión');
+      const errorMessage = err instanceof Error ? err.message : 'Error al iniciar sesión';
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -55,6 +66,7 @@ export default function LoginPage() {
               onChange={(e) => setEmail(e.target.value)}
               placeholder="tu@email.com"
               className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-transparent"
+              disabled={loading}
             />
           </div>
 
@@ -69,6 +81,7 @@ export default function LoginPage() {
               onChange={(e) => setPassword(e.target.value)}
               placeholder="Contraseña"
               className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-transparent"
+              disabled={loading}
             />
           </div>
 
@@ -100,3 +113,4 @@ export default function LoginPage() {
     </div>
   );
 }
+
