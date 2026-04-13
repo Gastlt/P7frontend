@@ -108,3 +108,43 @@ export async function getTasks() {
 
   return response.json();
 }
+
+export type CreateTaskRequest = {
+  listId: number;
+  title: string;
+  description?: string | null;
+  status: string;
+  priority: string;
+  dueDate?: string | null;
+  createdById: number;
+};
+
+export type TaskDTO = {
+  id: number;
+  title: string;
+  description: string | null;
+  status: "pending" | "in_progress" | "completed";
+  priority: "low" | "medium" | "high";
+  dueDate: string | null;
+  createdAt: string;
+  assigneeName: string | null;
+  groupName: string | null;
+  todoListName: string | null;
+};
+
+export async function createTask(payload: CreateTaskRequest): Promise<TaskDTO> {
+  const response = await fetch("http://localhost:8080/api/tasks", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(payload),
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(errorText || "No se pudo crear la tarea");
+  }
+
+  return response.json();
+}

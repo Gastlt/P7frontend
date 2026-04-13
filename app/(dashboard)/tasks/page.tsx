@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Filter, ArrowUpDown } from "lucide-react";
 import { getTasks } from "@/lib/api";
+import { useRouter } from "next/navigation";
 
 type TaskDTO = {
   id: number;
@@ -17,6 +18,7 @@ type TaskDTO = {
   todoListName: string | null;
 };
 
+
 export default function AllTasksPage() {
   const [tasks, setTasks] = useState<TaskDTO[]>([]);
   const [query, setQuery] = useState("");
@@ -25,6 +27,7 @@ export default function AllTasksPage() {
   const [sortDirection, setSortDirection] = useState<"desc" | "asc">("desc");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const router = useRouter();
 
   useEffect(() => {
     const loadTasks = async () => {
@@ -144,13 +147,23 @@ export default function AllTasksPage() {
   }
 
   return (
+    
     <>
-      <div className="mb-6">
-        <h1 className="text-2xl text-black font-semibold">Todas las Tareas</h1>
-        <p className="text-gray-700">
-          Vista completa de todas las tareas registradas en el sistema
-        </p>
-      </div>
+      <div className="mb-6 flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl text-black font-semibold">Todas las Tareas</h1>
+            <p className="text-gray-700">
+              Vista completa de todas las tareas registradas en el sistema
+            </p>
+          </div>
+
+          <button
+            onClick={() => router.push("/tasks/create")}
+            className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg"
+          >
+            + Nueva tarea
+          </button>
+        </div>
 
       <div className="bg-white border rounded-xl p-5 mb-6">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
