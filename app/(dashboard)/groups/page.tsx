@@ -1,5 +1,6 @@
 "use client";
 
+import ProtectedRoute from "@/components/ProtectedRoute";
 import { useState } from "react";
 
 type Group = {
@@ -58,6 +59,7 @@ export default function GroupsPage() {
   const [selectedPerson, setSelectedPerson] = useState("All");
 
   return (
+    <ProtectedRoute>
     <div className="flex min-h-screen bg-gray-50">
  
 
@@ -140,5 +142,6 @@ export default function GroupsPage() {
         </div>
       </main>
     </div>
+    </ProtectedRoute>
   );
 }

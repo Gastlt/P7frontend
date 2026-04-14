@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createTask } from "@/lib/api";
+import ProtectedRoute from "@/components/ProtectedRoute";
 
 export default function CreateTaskPage() {
   const router = useRouter();
@@ -61,6 +62,7 @@ export default function CreateTaskPage() {
   };
 
   return (
+    <ProtectedRoute>
     <div className="max-w-2xl mx-auto p-6">
       <div className="mb-6">
         <h1 className="text-2xl font-semibold text-black">Crear Nueva Tarea</h1>
@@ -188,5 +190,6 @@ export default function CreateTaskPage() {
         </form>
       </div>
     </div>
+    </ProtectedRoute>
   );
 }
