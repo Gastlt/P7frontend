@@ -1,10 +1,10 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { validateLoginData } from '@/app/middleware/validation';
-import { setAuthToken, setUserData } from '@/app/middleware/auth';
-import { loginUser } from '@/lib/api';
+import { loginUser } from '@/lib/auth';
+import { saveSession } from '@/lib/session';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -13,36 +13,43 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const validateForm = () => {
+    const errors: string[] = [];
+
+    if (!email.trim()) errors.push('El email es obligatorio');
+    if (!password) errors.push('La contraseña es obligatoria');
+
+    return errors;
+  };
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError('');
 
-    // Validate input
-    const validation = validateLoginData({ email, password });
-    if (!validation.isValid) {
-      setError(validation.errors.join(', '));
+    const errors = validateForm();
+    if (errors.length > 0) {
+      setError(errors.join(', '));
       return;
     }
 
     setLoading(true);
+
     try {
-      const response = await loginUser(email, password);
+      const response = await loginUser({
+        email: email.trim(),
+        password,
+      });
 
-      // Store auth tokens
-      setAuthToken(response.accessToken, false);
-      if (response.refreshToken) {
-        setAuthToken(response.refreshToken, true);
-      }
+      saveSession(response.token, {
+        userId: response.userId,
+        name: response.name,
+        email: response.email,
+      });
 
-      // Store user data
-      if (response.user) {
-        setUserData(response.user);
-      }
-
-      // Redirect to dashboard
-      router.push('/dashboard');
+      router.push('/');
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Error al iniciar sesión';
+      const errorMessage =
+        err instanceof Error ? err.message : 'Error al iniciar sesión';
       setError(errorMessage);
     } finally {
       setLoading(false);
@@ -52,10 +59,11 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-red-700 to-red-900 flex items-center justify-center p-4">
       <div className="bg-white rounded-lg shadow-lg p-8 w-full max-w-sm">
-        <h1 className="text-2xl font-bold text-gray-900 mb-6 text-center">Iniciar Sesión</h1>
+        <h1 className="text-2xl font-bold text-gray-900 mb-6 text-center">
+          Iniciar Sesión
+        </h1>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Email */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Email
@@ -70,7 +78,6 @@ export default function LoginPage() {
             />
           </div>
 
-          {/* Password */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Contraseña
@@ -85,14 +92,12 @@ export default function LoginPage() {
             />
           </div>
 
-          {/* Error Message */}
           {error && (
             <div className="text-red-600 text-sm text-center bg-red-50 p-2 rounded">
               {error}
             </div>
           )}
 
-          {/* Submit Button */}
           <button
             type="submit"
             disabled={loading}
@@ -102,15 +107,16 @@ export default function LoginPage() {
           </button>
         </form>
 
-        {/* Signup Link */}
         <p className="text-center text-gray-600 text-sm mt-6">
           ¿No tienes cuenta?{' '}
-          <a href="/auth/signup" className="text-red-600 hover:text-red-700 font-medium">
+          <Link
+            href="/auth/signup"
+            className="text-red-600 hover:text-red-700 font-medium"
+          >
             Regístrate
-          </a>
+          </Link>
         </p>
       </div>
     </div>
   );
 }
-

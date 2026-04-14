@@ -1,57 +1,66 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { validateSignupData } from '@/app/middleware/validation';
-import { setAuthToken, setUserData } from '@/app/middleware/auth';
-import { signupUser } from '@/lib/api';
+import { registerUser } from '@/lib/auth';
+import { saveSession } from '@/lib/session';
 
 export default function SignupPage() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [repeatPassword, setRepeatPassword] = useState('');
-  const [phone, setPhone] = useState('');
-  const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
   const router = useRouter();
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
+  const [password, setPassword] = useState('');
+  const [repeatPassword, setRepeatPassword] = useState('');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const validateForm = () => {
+    const errors: string[] = [];
+
+    if (!name.trim()) errors.push('El nombre es obligatorio');
+    if (!email.trim()) errors.push('El email es obligatorio');
+    if (!phone.trim()) errors.push('El teléfono es obligatorio');
+    if (!password) errors.push('La contraseña es obligatoria');
+    if (password.length < 6) errors.push('La contraseña debe tener al menos 6 caracteres');
+    if (password !== repeatPassword) errors.push('Las contraseñas no coinciden');
+
+    return errors;
+  };
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError('');
 
-    // Validate input
-    const validation = validateSignupData({
-      email,
-      password,
-      repeatPassword,
-      phone,
-    });
-
-    if (!validation.isValid) {
-      setError(validation.errors.join(', '));
+    const errors = validateForm();
+    if (errors.length > 0) {
+      setError(errors.join(', '));
       return;
     }
 
     setLoading(true);
+
     try {
-      const response = await signupUser({ email, password, phone });
+      const response = await registerUser({
+        name: name.trim(),
+        email: email.trim(),
+        phone: phone.trim(),
+        password,
+      });
 
-      // Store auth tokens
-      setAuthToken(response.accessToken, false);
-      if (response.refreshToken) {
-        setAuthToken(response.refreshToken, true);
-      }
+      saveSession(response.token, {
+        userId: response.userId,
+        name: response.name,
+        email: response.email,
+      });
 
-      // Store user data
-      if (response.user) {
-        setUserData(response.user);
-      }
-
-      // Redirect to dashboard
-      router.push('/dashboard');
+      router.push('/');
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Error al crear la cuenta';
-      setError(errorMessage);
+      const message =
+        err instanceof Error ? err.message : 'Error al crear la cuenta';
+      setError(message);
     } finally {
       setLoading(false);
     }
@@ -60,10 +69,25 @@ export default function SignupPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-red-700 to-red-900 flex items-center justify-center p-4">
       <div className="bg-white rounded-lg shadow-lg p-8 w-full max-w-sm">
-        <h1 className="text-2xl font-bold text-gray-900 mb-6 text-center">Crear Cuenta</h1>
+        <h1 className="text-2xl font-bold text-gray-900 mb-6 text-center">
+          Crear Cuenta
+        </h1>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Email */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Nombre
+            </label>
+            <input
+              type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="Tu nombre"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-transparent"
+              disabled={loading}
+            />
+          </div>
+
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Email
@@ -78,37 +102,6 @@ export default function SignupPage() {
             />
           </div>
 
-          {/* Password */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Contraseña
-            </label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="Contraseña"
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-transparent"
-              disabled={loading}
-            />
-          </div>
-
-          {/* Repeat Password */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Repetir Contraseña
-            </label>
-            <input
-              type="password"
-              value={repeatPassword}
-              onChange={(e) => setRepeatPassword(e.target.value)}
-              placeholder="Repetir contraseña"
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-transparent"
-              disabled={loading}
-            />
-          </div>
-
-          {/* Phone */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Teléfono celular
@@ -123,14 +116,40 @@ export default function SignupPage() {
             />
           </div>
 
-          {/* Error Message */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Contraseña
+            </label>
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="Contraseña"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-transparent"
+              disabled={loading}
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Repetir Contraseña
+            </label>
+            <input
+              type="password"
+              value={repeatPassword}
+              onChange={(e) => setRepeatPassword(e.target.value)}
+              placeholder="Repetir contraseña"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-transparent"
+              disabled={loading}
+            />
+          </div>
+
           {error && (
             <div className="text-red-600 text-sm text-center bg-red-50 p-2 rounded">
               {error}
             </div>
           )}
 
-          {/* Submit Button */}
           <button
             type="submit"
             disabled={loading}
@@ -140,12 +159,14 @@ export default function SignupPage() {
           </button>
         </form>
 
-        {/* Login Link */}
         <p className="text-center text-gray-600 text-sm mt-6">
           ¿Ya tienes cuenta?{' '}
-          <a href="/auth/login" className="text-red-600 hover:text-red-700 font-medium">
+          <Link
+            href="/auth/login"
+            className="text-red-600 hover:text-red-700 font-medium"
+          >
             Inicia sesión
-          </a>
+          </Link>
         </p>
       </div>
     </div>

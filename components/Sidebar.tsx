@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
   LayoutDashboard,
   Folder,
@@ -10,11 +10,20 @@ import {
   BarChart3,
   CheckCircle,
   Settings,
-  SquareChartGantt
+  SquareChartGantt,
+  LogOut
 } from "lucide-react";
+
+import { clearSession } from "@/lib/session";
 
 export default function Sidebar() {
   const pathname = usePathname();
+  const router = useRouter();
+
+  const handleLogout = () => {
+    clearSession();
+    router.push("/auth/login");
+  };
 
   const link = (href: string, label: string, Icon: any) => {
     const active = pathname === href;
@@ -28,49 +37,65 @@ export default function Sidebar() {
           : "hover:bg-gray-100 text-gray-700"
         }`}
       >
-        <Icon size={18}
-        className={active ? "text-white" : "text-gray-500"} />
+        <Icon
+          size={18}
+          className={active ? "text-white" : "text-gray-500"}
+        />
         {label}
       </Link>
     );
   };
 
   return (
-    <aside className="w-64 bg-white border-r p-4">
+    <aside className="w-64 bg-white border-r p-4 flex flex-col justify-between">
+      {/* TOP */}
+      <div>
         <div className="mb-8 flex items-center gap-3">
-        <div className="bg-red-500 text-white p-2 rounded-lg">
+          <div className="bg-red-500 text-white p-2 rounded-lg">
             <SquareChartGantt size={20} />
-        </div>
+          </div>
 
-        <div>
+          <div>
             <h2 className="font-bold text-l text-black leading-tight">
-            Dashboard de Gestión
+              Dashboard de Gestión
             </h2>
             <p className="text-sm text-gray-600">
-            Super Admin
+              Super Admin
             </p>
-        </div>
-        </div>
-
-      <nav className="space-y-2">
-        {link("/", "Dashboard", LayoutDashboard)}
-        {link("/groups", "Grupos", Folder)}
-        {link("/tasks", "Todas las Tareas", CheckSquare)}
-
-        <div className="pt-6 text-sm text-gray-500">
-          Acceso Rápido
+          </div>
         </div>
 
-        {link("/backlog", "Backlog", Clock)}
-        {link("/in-progress", "En Progreso", BarChart3)}
-        {link("/completed", "Completadas", CheckCircle)}
+        <nav className="space-y-2">
+          {link("/", "Dashboard", LayoutDashboard)}
+          {link("/groups", "Grupos", Folder)}
+          {link("/tasks", "Todas las Tareas", CheckSquare)}
 
-        <div className="pt-6 text-sm text-gray-500">
-          Ajustes
-        </div>
+          <div className="pt-6 text-sm text-gray-500">
+            Acceso Rápido
+          </div>
 
-        {link("/settings", "Configuración", Settings)}
-      </nav>
+          {link("/backlog", "Backlog", Clock)}
+          {link("/in-progress", "En Progreso", BarChart3)}
+          {link("/completed", "Completadas", CheckCircle)}
+
+          <div className="pt-6 text-sm text-gray-500">
+            Ajustes
+          </div>
+
+          {link("/settings", "Configuración", Settings)}
+        </nav>
+      </div>
+
+      {/* LOGOUT BUTTON */}
+      <div className="pt-6 border-t">
+        <button
+          onClick={handleLogout}
+          className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-red-600 hover:bg-red-50 transition-colors"
+        >
+          <LogOut size={18} />
+          Cerrar sesión
+        </button>
+      </div>
     </aside>
   );
 }
