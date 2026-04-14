@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import type { LucideIcon } from "lucide-react";
 import {
   LayoutDashboard,
   Folder,
@@ -16,7 +17,7 @@ import {
 export default function Sidebar() {
   const pathname = usePathname();
 
-  const link = (href: string, label: string, Icon: any) => {
+  const link = (href: string, label: string, Icon: LucideIcon) => {
     const active = pathname === href;
 
     return (

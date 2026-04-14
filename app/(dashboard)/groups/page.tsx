@@ -1,58 +1,8 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
-
-type Group = {
-  id: number;
-  title: string;
-  description: string;
-  progress: number;
-  total: number;
-  members: string[];
-};
-
-const people = [
-  "All",
-  "Alice Johnson",
-  "Bob Smith",
-  "Carol White",
-  "David Brown",
-];
-
-const mockGroups: Group[] = [
-  {
-    id: 1,
-    title: "Marketing Campaign",
-    description: "prueba",
-    progress: 1,
-    total: 4,
-    members: ["Alice", "Bob", "Carol", "David", "Emma", "Grace", "Henry", "Frank"],
-  },
-  {
-    id: 2,
-    title: "Frontend Revamp",
-    description: "Website UI refresh",
-    progress: 1,
-    total: 4,
-    members: ["Alice", "Bob", "Carol", "David", "Emma", "Grace", "Henry", "Frank"],
-  },
-  {
-    id: 3,
-    title: "Customer Onboarding",
-    description: "New user setup workflow",
-    progress: 1,
-    total: 4,
-    members: ["Alice", "Bob", "Carol", "David", "Emma", "Grace", "Henry", "Frank"],
-  },
-  {
-    id: 4,
-    title: "Ops Automation",
-    description: "Internal workflow improvements",
-    progress: 1,
-    total: 4,
-    members: ["Alice", "Bob", "Carol", "David", "Emma", "Grace", "Henry", "Frank"],
-  },
-];
+import { mockGroups, people } from "./groupsData";
 
 export default function GroupsPage() {
   const [selectedPerson, setSelectedPerson] = useState("All");
@@ -93,9 +43,10 @@ export default function GroupsPage() {
             const percent = (group.progress / group.total) * 100;
 
             return (
-              <div
+              <Link
                 key={group.id}
-                className="bg-white border rounded-xl p-5 shadow-sm"
+                href={`/groups/${group.id}`}
+                className="bg-white border rounded-xl p-5 shadow-sm block hover:border-red-200 hover:shadow-md transition"
               >
                 <h3 className="font-semibold text-black">{group.title}</h3>
                 <p className="text-sm text-gray-500 mb-4">
@@ -134,7 +85,7 @@ export default function GroupsPage() {
                     </span>
                   ))}
                 </div>
-              </div>
+              </Link>
             );
           })}
         </div>

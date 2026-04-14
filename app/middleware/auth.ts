@@ -7,7 +7,7 @@ import bcryptjs from 'bcryptjs';
 
 const HASH_ROUNDS = 10; // Number of salt rounds for bcryptjs
 const TOKEN_EXPIRY = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
-const REFRESH_TOKEN_EXPIRY = 7 * 24 * 60 * 60 * 1000; // 7 days
+export const REFRESH_TOKEN_EXPIRY = 7 * 24 * 60 * 60 * 1000; // 7 days
 
 export interface AuthToken {
   accessToken: string;
@@ -22,6 +22,11 @@ export interface AuthUser {
   createdAt: string;
 }
 
+type TokenPayload = Record<string, unknown> & {
+  iat?: number;
+  exp?: number;
+};
+
 /**
  * Hash a password using bcryptjs
  * This should ONLY be called on the backend during signup
@@ -31,7 +36,7 @@ export async function hashPassword(password: string): Promise<string> {
     const salt = await bcryptjs.genSalt(HASH_ROUNDS);
     const hashedPassword = await bcryptjs.hash(password, salt);
     return hashedPassword;
-  } catch (error) {
+  } catch {
     throw new Error('Failed to hash password');
   }
 }
@@ -46,7 +51,7 @@ export async function verifyPassword(
 ): Promise<boolean> {
   try {
     return await bcryptjs.compare(plainPassword, hashedPassword);
-  } catch (error) {
+  } catch {
     return false;
   }
 }
@@ -55,7 +60,7 @@ export async function verifyPassword(
  * Generate a simple JWT-like token (frontend utility)
  * For production, use a proper JWT library and sign on the backend
  */
-export function generateToken(data: Record<string, any>, expiresIn: number = TOKEN_EXPIRY): string {
+export function generateToken(data: Record<string, unknown>, expiresIn: number = TOKEN_EXPIRY): string {
   const payload = {
     ...data,
     iat: Date.now(),
@@ -69,17 +74,23 @@ export function generateToken(data: Record<string, any>, expiresIn: number = TOK
 /**
  * Verify and decode a token
  */
-export function verifyToken(token: string): Record<string, any> | null {
+export function verifyToken(token: string): TokenPayload | null {
   try {
-    const decoded = JSON.parse(Buffer.from(token, 'base64').toString('utf-8'));
+    const decoded = JSON.parse(Buffer.from(token, 'base64').toString('utf-8')) as unknown;
+
+    if (!decoded || typeof decoded !== 'object') {
+      return null;
+    }
+
+    const payload = decoded as TokenPayload;
 
     // Check expiration
-    if (decoded.exp && decoded.exp < Date.now()) {
+    if (typeof payload.exp === 'number' && payload.exp < Date.now()) {
       return null; // Token expired
     }
 
-    return decoded;
-  } catch (error) {
+    return payload;
+  } catch {
     return null;
   }
 }
