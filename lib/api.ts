@@ -71,3 +71,41 @@ export async function createTask(payload: CreateTaskRequest): Promise<TaskDTO> {
 
   return response.json();
 }
+
+export type Group = {
+  id: number;
+  title: string;
+  description: string;
+  progress: number;
+  total: number;
+  members: string[];
+};
+
+export async function getUserGroups(): Promise<Group[]> {
+  const response = await fetch(`${API_BASE_URL}/groups/user`, {
+    headers: getAuthHeaders(),
+  });
+
+  if (!response.ok) {
+    throw new Error("Error al obtener los grupos");
+  }
+
+  return response.json();
+}
+
+export async function updateTaskStatus(
+  taskId: number,
+  status: "pending" | "in_progress" | "completed"
+): Promise<TaskDTO> {
+  const response = await fetch(`${API_BASE_URL}/tasks/${taskId}/status`, {
+    method: "PUT",
+    headers: getAuthHeaders(),
+    body: JSON.stringify({ status }),
+  });
+
+  if (!response.ok) {
+    throw new Error("Error al actualizar el estado de la tarea");
+  }
+
+  return response.json();
+}
