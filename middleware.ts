@@ -1,8 +1,9 @@
-import { authMiddleware } from './middleware/auth';
-import { validationMiddleware } from './middleware/validation';
+import { NextResponse, type NextRequest } from 'next/server';
 
 export function middleware(request: NextRequest) {
-  // Tu lógica
+  return NextResponse.next({
+    request,
+  });
 }
 
 export const config = {

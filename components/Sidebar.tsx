@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import type { LucideIcon } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import {
   LayoutDashboard,
@@ -25,7 +26,7 @@ export default function Sidebar() {
     router.push("/auth/login");
   };
 
-  const link = (href: string, label: string, Icon: any) => {
+  const link = (href: string, label: string, Icon: LucideIcon) => {
     const active = pathname === href;
 
     return (
