@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Filter, ArrowUpDown } from "lucide-react";
 import { getTasks } from "@/lib/api";
 import { useRouter } from "next/navigation";
+import ProtectedRoute from '@/components/ProtectedRoute';
 
 type TaskDTO = {
   id: number;
@@ -147,7 +148,7 @@ export default function AllTasksPage() {
   }
 
   return (
-    
+    <ProtectedRoute>
     <>
       <div className="mb-6 flex items-center justify-between">
           <div>
@@ -303,5 +304,6 @@ export default function AllTasksPage() {
         </table>
       </div>
     </>
+    </ProtectedRoute>
   );
 }

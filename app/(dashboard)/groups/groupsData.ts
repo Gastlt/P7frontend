@@ -107,7 +107,12 @@ export async function fetchTaskGroups(): Promise<TaskGroup[]> {
       method: "GET",
       headers: { "Content-Type": "application/json" },
     });
-    if (!response.ok) throw new Error(`Failed to fetch task groups: ${response.statusText}`);
+      if (!response.ok) {
+    const errorBody = await response.text();
+    throw new Error(
+      `Failed to fetch task groups: ${response.status} ${response.statusText} - ${errorBody}`
+    );
+  }
     return await response.json();
   } catch (error) {
     console.error("Error fetching task groups:", error);
@@ -124,7 +129,12 @@ export async function fetchGroupMembers(): Promise<GroupMember[]> {
       method: "GET",
       headers: { "Content-Type": "application/json" },
     });
-    if (!response.ok) throw new Error(`Failed to fetch group members: ${response.statusText}`);
+      if (!response.ok) {
+    const errorBody = await response.text();
+    throw new Error(
+      `Failed to fetch task groups: ${response.status} ${response.statusText} - ${errorBody}`
+    );
+  }
     return await response.json();
   } catch (error) {
     console.error("Error fetching group members:", error);
@@ -224,9 +234,13 @@ export async function fetchTaskAssignments(): Promise<TaskAssignment[]> {
   try {
     const response = await fetch(`${API_BASE_URL}/api/task-assignments`, {
       method: "GET",
-      headers: { "Content-Type": "application/json" },
     });
-    if (!response.ok) throw new Error(`Failed to fetch task assignments: ${response.statusText}`);
+      if (!response.ok) {
+    const errorBody = await response.text();
+    throw new Error(
+      `Failed to fetch task groups: ${response.status} ${response.statusText} - ${errorBody}`
+    );
+  }
     return await response.json();
   } catch (error) {
     console.error("Error fetching task assignments:", error);

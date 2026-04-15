@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useState, useEffect } from "react";
 import { fetchAllGroupsData, fetchPeople, Group } from "./groupsData";
+import ProtectedRoute from "@/components/ProtectedRoute";
 
 export default function GroupsPage() {
   const [selectedPerson, setSelectedPerson] = useState("All");
@@ -49,6 +50,7 @@ export default function GroupsPage() {
   }
 
   return (
+    <ProtectedRoute>
     <div className="flex min-h-screen bg-gray-50">
       {/* Main */}
       <main className="flex-1 p-8">
@@ -147,5 +149,6 @@ export default function GroupsPage() {
         </div>
       </main>
     </div>
+    </ProtectedRoute>
   );
 }
