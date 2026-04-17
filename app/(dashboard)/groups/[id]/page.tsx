@@ -3,14 +3,29 @@
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { Calendar, ChevronLeft, UserRound } from "lucide-react";
-import { FormEvent, useMemo, useState } from "react";
-import { GroupTask, mockGroups, people } from "../groupsData";
+import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
+import {
+  createGroupTask,
+  deleteTask,
+  getTaskGroupDetail,
+  updateTaskStatus,
+} from "@/lib/api";
+import {
+  Group,
+  GroupMember,
+  GroupTask,
+  taskGroupDetailToGroup,
+} from "../groupsData";
 
 type NewTaskModalProps = {
   groupTitle: string;
-  members: string[];
+  members: GroupMember[];
   onClose: () => void;
-  onCreate: (task: Omit<GroupTask, "id" | "status">) => void;
+  onCreate: (task: {
+    title: string;
+    assigneeId: number;
+    dueDate: string | null;
+  }) => Promise<void>;
 };
 
 function NewTaskModal({
@@ -23,8 +38,9 @@ function NewTaskModal({
   const [assignee, setAssignee] = useState("");
   const [dueDate, setDueDate] = useState("");
   const [error, setError] = useState("");
+  const [saving, setSaving] = useState(false);
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setError("");
 
@@ -38,11 +54,20 @@ function NewTaskModal({
       return;
     }
 
-    onCreate({
-      title: title.trim(),
-      assignee,
-      dueDate: dueDate || null,
-    });
+    try {
+      setSaving(true);
+      await onCreate({
+        title: title.trim(),
+        assigneeId: Number(assignee),
+        dueDate: dueDate || null,
+      });
+    } catch (err) {
+      const message =
+        err instanceof Error ? err.message : "No se pudo crear la tarea";
+      setError(message);
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -61,6 +86,7 @@ function NewTaskModal({
               onChange={(event) => setTitle(event.target.value)}
               placeholder="Enter task title"
               className="h-10 w-full rounded-lg border border-gray-300 px-3 text-sm text-gray-900 outline-none focus:border-red-500"
+              disabled={saving}
             />
           </div>
 
@@ -72,11 +98,12 @@ function NewTaskModal({
               value={assignee}
               onChange={(event) => setAssignee(event.target.value)}
               className="h-10 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-900 outline-none focus:border-red-500"
+              disabled={saving}
             >
               <option value="">Select a member</option>
               {members.map((member) => (
-                <option key={member} value={member}>
-                  {member}
+                <option key={member.id} value={member.id}>
+                  {member.name}
                 </option>
               ))}
             </select>
@@ -91,6 +118,7 @@ function NewTaskModal({
               value={dueDate}
               onChange={(event) => setDueDate(event.target.value)}
               className="h-10 w-full rounded-lg border border-gray-300 px-3 text-sm text-gray-900 outline-none focus:border-red-500"
+              disabled={saving}
             />
           </div>
 
@@ -105,14 +133,16 @@ function NewTaskModal({
               type="button"
               onClick={onClose}
               className="h-10 rounded-lg border border-gray-200 text-sm text-gray-700 hover:bg-gray-50"
+              disabled={saving}
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="h-10 rounded-lg bg-red-600 text-sm text-white hover:bg-red-700"
+              className="h-10 rounded-lg bg-red-600 text-sm text-white hover:bg-red-700 disabled:opacity-50"
+              disabled={saving}
             >
-              Create Task
+              {saving ? "Creating..." : "Create Task"}
             </button>
           </div>
         </form>
@@ -123,18 +153,56 @@ function NewTaskModal({
 
 export default function GroupDetailPage() {
   const params = useParams<{ id: string }>();
-  const group = mockGroups.find((item) => item.id === Number(params.id));
+  const groupId = Number(params.id);
+  const [group, setGroup] = useState<Group | null>(null);
   const [selectedPerson, setSelectedPerson] = useState("All");
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [tasks, setTasks] = useState<GroupTask[]>(group?.tasks ?? []);
+  const [tasks, setTasks] = useState<GroupTask[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [taskError, setTaskError] = useState("");
+  const [taskActionId, setTaskActionId] = useState<number | null>(null);
+
+  const loadGroup = useCallback(async () => {
+    const data = await getTaskGroupDetail(groupId);
+    const viewGroup = taskGroupDetailToGroup(data);
+    setGroup(viewGroup);
+    setTasks(viewGroup.tasks);
+  }, [groupId]);
+
+  useEffect(() => {
+    const loadGroupData = async () => {
+      try {
+        setLoading(true);
+        setError("");
+        await loadGroup();
+      } catch (err) {
+        console.error(err);
+        setError("No se pudo cargar el grupo");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (Number.isNaN(groupId)) {
+      setError("Grupo no encontrado");
+      setLoading(false);
+      return;
+    }
+
+    loadGroupData();
+  }, [groupId, loadGroup]);
 
   const groupMembers = useMemo(() => {
     if (!group) return [];
-    const names = group.members.map((member) => {
-      const fullName = people.find((person) => person.startsWith(member));
-      return fullName ?? member;
-    });
-    return Array.from(new Set(names));
+    return Array.from(new Set(group.members));
+  }, [group]);
+
+  const groupMemberDetails = useMemo(() => {
+    if (!group) return [];
+    const uniqueMembers = new Map<number, GroupMember>();
+    group.memberDetails.forEach((member) => uniqueMembers.set(member.id, member));
+    return Array.from(uniqueMembers.values());
   }, [group]);
 
   const filteredTasks = useMemo(() => {
@@ -155,19 +223,57 @@ export default function GroupDetailPage() {
     }).format(new Date(date));
   };
 
-  const handleCreateTask = (task: Omit<GroupTask, "id" | "status">) => {
-    setTasks((currentTasks) => [
-      ...currentTasks,
-      {
-        id: Date.now(),
-        status: "pending",
-        ...task,
-      },
-    ]);
+  const handleCreateTask = async (task: {
+    title: string;
+    assigneeId: number;
+    dueDate: string | null;
+  }) => {
+    await createGroupTask(groupId, task);
+    await loadGroup();
     setIsModalOpen(false);
   };
 
-  if (!group) {
+  const handleToggleTaskStatus = async (task: GroupTask) => {
+    try {
+      setTaskError("");
+      setTaskActionId(task.id);
+      await updateTaskStatus(
+        task.id,
+        task.status === "completed" ? "pending" : "completed"
+      );
+      await loadGroup();
+    } catch (err) {
+      const message =
+        err instanceof Error ? err.message : "No se pudo actualizar la tarea";
+      setTaskError(message);
+    } finally {
+      setTaskActionId(null);
+    }
+  };
+
+  const handleDeleteTask = async (task: GroupTask) => {
+    const confirmed = window.confirm(`Eliminar la tarea "${task.title}"?`);
+    if (!confirmed) return;
+
+    try {
+      setTaskError("");
+      setTaskActionId(task.id);
+      await deleteTask(task.id);
+      await loadGroup();
+    } catch (err) {
+      const message =
+        err instanceof Error ? err.message : "No se pudo eliminar la tarea";
+      setTaskError(message);
+    } finally {
+      setTaskActionId(null);
+    }
+  };
+
+  if (loading) {
+    return <div className="p-6 text-black">Cargando grupo...</div>;
+  }
+
+  if (error || !group) {
     return (
       <div className="p-6 text-black">
         <Link
@@ -177,7 +283,9 @@ export default function GroupDetailPage() {
           <ChevronLeft size={16} />
           Volver a los Grupos
         </Link>
-        <h1 className="text-2xl font-semibold">Grupo no encontrado</h1>
+        <h1 className="text-2xl font-semibold">
+          {error || "Grupo no encontrado"}
+        </h1>
       </div>
     );
   }
@@ -237,6 +345,12 @@ export default function GroupDetailPage() {
         </div>
       </div>
 
+      {taskError && (
+        <div className="mb-4 w-full max-w-3xl rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-600">
+          {taskError}
+        </div>
+      )}
+
       <div className="w-full max-w-3xl overflow-hidden rounded-lg border border-gray-200 bg-white">
         {filteredTasks.length === 0 ? (
           <div className="p-5 text-sm text-gray-500">
@@ -250,15 +364,35 @@ export default function GroupDetailPage() {
             return (
               <div
                 key={task.id}
-                className="flex gap-4 border-b border-gray-100 p-4 last:border-b-0"
+                className="relative flex gap-4 border-b border-gray-100 p-4 pr-12 last:border-b-0"
               >
-                <div
-                  className={`mt-1 h-4 w-4 shrink-0 rounded-full border ${
+                <button
+                  type="button"
+                  onClick={() => handleDeleteTask(task)}
+                  className="absolute right-3 top-3 flex h-6 w-6 items-center justify-center rounded-md text-xs text-gray-400 hover:bg-red-50 hover:text-red-600 disabled:opacity-50"
+                  aria-label={`Delete ${task.title}`}
+                  disabled={taskActionId === task.id}
+                >
+                  x
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => handleToggleTaskStatus(task)}
+                  className={`mt-1 flex h-4 w-4 shrink-0 items-center justify-center rounded-full border disabled:opacity-50 ${
                     completedTask
-                      ? "border-red-500 bg-red-50"
+                      ? "border-red-500 bg-red-500"
                       : "border-gray-400"
                   }`}
-                />
+                  aria-label={
+                    completedTask ? "Mark task as open" : "Mark task completed"
+                  }
+                  disabled={taskActionId === task.id}
+                >
+                  {completedTask && (
+                    <span className="h-1.5 w-1.5 rounded-full bg-white" />
+                  )}
+                </button>
                 <div>
                   <h2
                     className={`text-sm font-medium ${
@@ -274,6 +408,7 @@ export default function GroupDetailPage() {
                       <UserRound size={13} />
                       {task.assignee}
                     </span>
+                    <span>{completedTask ? "Completed" : "Open"}</span>
                     {date && (
                       <span className="inline-flex items-center gap-1">
                         <Calendar size={13} />
@@ -291,7 +426,7 @@ export default function GroupDetailPage() {
       {isModalOpen && (
         <NewTaskModal
           groupTitle={group.title}
-          members={groupMembers}
+          members={groupMemberDetails}
           onClose={() => setIsModalOpen(false)}
           onCreate={handleCreateTask}
         />
