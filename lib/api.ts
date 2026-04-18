@@ -1,3 +1,5 @@
+import { getToken } from "@/lib/session";
+
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080/api";
 
 /**
@@ -9,7 +11,7 @@ function getAuthHeaders() {
   };
 
   if (typeof window !== "undefined") {
-    const token = localStorage.getItem("accessToken");
+    const token = getToken() || localStorage.getItem("accessToken");
     if (token) {
       headers["Authorization"] = `Bearer ${token}`;
     }
@@ -87,7 +89,9 @@ export async function getUserGroups(): Promise<Group[]> {
   });
 
   if (!response.ok) {
-    throw new Error("Error al obtener los grupos");
+    const errorText = await response.text();
+    console.error("getUserGroups failed:", response.status, response.statusText, errorText);
+    throw new Error(`Error al obtener los grupos: ${response.status} - ${errorText}`);
   }
 
   return response.json();
