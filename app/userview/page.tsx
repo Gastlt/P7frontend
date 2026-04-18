@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import ProtectedRoute from "@/components/ProtectedRoute";
-import { getTasks, getUserGroups, updateTaskStatus, createTask, TaskDTO, Group, CreateTaskRequest } from "@/lib/api";
+import { getTasks, getUserGroups, updateTaskStatus, createTask, getTodoListsByGroup, TaskDTO, Group, CreateTaskRequest } from "@/lib/api";
 import { getUser, clearSession } from "@/lib/session";
 import { Plus, Clock, CheckCircle2, AlertCircle, X, SquareChartGantt, LogOut, LayoutDashboard, Folder, CheckSquare } from "lucide-react";
 
@@ -146,13 +146,21 @@ export default function UserViewPage() {
 
     try {
       setCreating(true);
+      const todoLists = await getTodoListsByGroup(selectedGroup.id);
+      const targetTodoList = todoLists[0];
+
+      if (!targetTodoList) {
+        setError("El grupo seleccionado no tiene listas de tareas disponibles");
+        return;
+      }
+
       const payload: CreateTaskRequest = {
-        listId: selectedGroup.id,
+        listId: targetTodoList.id,
         title: formData.title,
         description: formData.description || null,
         status: "pending",
         priority: formData.priority,
-        dueDate: formData.dueDate || null,
+        dueDate: formData.dueDate ? `${formData.dueDate}T00:00:00` : null,
         createdById: user?.userId || 0,
       };
 
