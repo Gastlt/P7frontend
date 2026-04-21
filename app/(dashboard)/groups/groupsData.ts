@@ -62,6 +62,8 @@ export type Task = {
   createdBy?: User;
   createdAt?: string;
   todoList?: TodoList;
+  groupName?: string;
+  assigneeName?: string;
 };
 
 export type TaskAssignment = {
@@ -358,8 +360,8 @@ export async function fetchAllGroupsData(): Promise<Group[]> {
           return lists.some((l) => l.id === t.listId);
         }
         // Si no tiene listId pero tiene groupName, comparar por nombre del grupo
-        if ((t as any).groupName) {
-          return (t as any).groupName === g.name;
+        if (t.groupName) {
+          return t.groupName === g.name;
         }
         return false;
       });
@@ -397,7 +399,7 @@ export async function fetchAllGroupsData(): Promise<Group[]> {
           description: t.description,
           priority: t.priority as "low" | "medium" | "high" | undefined,
           // Usar assigneeName del backend si está disponible, sino buscar en taskAssignments
-          assignee: (t as any).assigneeName ?? 
+          assignee: t.assigneeName ?? 
                     users.find(
                       (u) => u.id === (taskAssignments.find((a) => a.taskId === t.id)?.userId ?? -1)
                     )?.name ?? 
@@ -568,13 +570,10 @@ export async function deleteTaskAssignment(assignmentId: number): Promise<boolea
  */
 export async function createTaskGroup(group: {
   name: string;
-  description?: string;
 }): Promise<TaskGroup | null> {
   try {
     const groupData = {
       name: group.name,
-      description: group.description || "",
-      createdById: 1, // TODO: obtener el usuario actual autenticado
     };
 
     console.log("Creating task group with data:", groupData);
@@ -595,6 +594,33 @@ export async function createTaskGroup(group: {
     return responseText ? JSON.parse(responseText) : null;
   } catch (error) {
     console.error("Error creating task group:", error);
+    return null;
+  }
+}
+
+/**
+ * Add a user to a task group
+ */
+export async function createGroupMember(groupId: number, userId: number): Promise<GroupMember | null> {
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/group-members`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        group: { id: groupId },
+        user: { id: userId },
+      }),
+    });
+
+    const responseText = await response.text();
+
+    if (!response.ok) {
+      throw new Error(`Failed to add group member: ${response.status} ${responseText}`);
+    }
+
+    return responseText ? JSON.parse(responseText) : null;
+  } catch (error) {
+    console.error(`Error adding user ${userId} to group ${groupId}:`, error);
     return null;
   }
 }
