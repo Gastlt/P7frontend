@@ -404,8 +404,8 @@ export default function UserViewPage() {
 
             {/* Create Task Modal */}
             {showCreateModal && (
-              <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                <div className="bg-white rounded-xl p-8 w-full max-w-md max-h-screen overflow-y-auto">
+              <div className="fixed inset-0 backdrop-blur-sm bg-black/20 flex items-center justify-center z-50">
+                <div className="bg-white rounded-xl p-8 w-full max-w-md max-h-screen overflow-y-auto shadow-xl">
                   <div className="flex justify-between items-center mb-6">
                     <h2 className="text-2xl text-black font-semibold">Nueva Tarea</h2>
                     <button
