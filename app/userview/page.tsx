@@ -6,6 +6,8 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import { getTasks, getUserGroups, updateTaskStatus, createTask, getTodoListsByGroup, TaskDTO, Group, CreateTaskRequest } from "@/lib/api";
 import { getUser, clearSession } from "@/lib/session";
 import { Plus, Clock, CheckCircle2, AlertCircle, X, SquareChartGantt, LogOut, LayoutDashboard, Folder, CheckSquare } from "lucide-react";
+import { DndContext, DragEndEvent, useDroppable, useDraggable } from "@dnd-kit/core";
+import { CSS } from "@dnd-kit/utilities";
 
 // User sidebar component
 function UserSidebar({ userName }: { userName: string }) {
@@ -205,6 +207,39 @@ export default function UserViewPage() {
     }
   };
 
+  // Handle drag and drop
+  const handleDragEnd = async (event: DragEndEvent) => {
+    const { active, over } = event;
+
+    if (!over) return;
+
+    const taskId = parseInt(active.id.toString().replace("task-", ""));
+    const newStatus = over.id as "pending" | "in_progress" | "completed";
+
+    // Get current task
+    const currentTask = allTasks.find((t) => t.id === taskId);
+    if (!currentTask || currentTask.status === newStatus) return;
+
+    const previousTasks = [...allTasks];
+
+    try {
+      // Optimistic update
+      setAllTasks((tasks) =>
+        tasks.map((t) => (t.id === taskId ? { ...t, status: newStatus } : t))
+      );
+
+      setUpdating(taskId);
+      await updateTaskStatus(taskId, newStatus);
+    } catch (err) {
+      console.error(err);
+      // Revert on error
+      setAllTasks(previousTasks);
+      setError("No se pudo actualizar el estado de la tarea");
+    } finally {
+      setUpdating(null);
+    }
+  };
+
   const mapStatusToSpanish = (status: TaskDTO["status"]) => {
     switch (status) {
       case "completed":
@@ -250,7 +285,12 @@ export default function UserViewPage() {
 
       <main className="flex-1 p-8">
         {loading ? (
-          <div className="text-center py-12 text-black">Cargando...</div>
+          <div className="flex items-center justify-center min-h-screen">
+            <div className="text-center">
+              <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-red-600 mb-4"></div>
+              <p className="text-gray-500">Cargando tareas...</p>
+            </div>
+          </div>
         ) : groups.length === 0 ? (
           // Empty state - centered card
           <div className="flex items-center justify-center min-h-[60vh]">
@@ -324,40 +364,42 @@ export default function UserViewPage() {
                 <p className="text-gray-500 mt-2">Crea una nueva tarea para empezar</p>
               </div>
             ) : (
-              <div className="grid grid-cols-3 gap-6">
-                {/* Pendiente Column */}
-                <KanbanColumn
-                  title="Pendiente"
-                  tasks={pendingTasks}
-                  onStatusChange={handleStatusChange}
-                  updating={updating}
-                  mapStatusToSpanish={mapStatusToSpanish}
-                  mapPriorityToSpanish={mapPriorityToSpanish}
-                  getPriorityColor={getPriorityColor}
-                />
+              <DndContext onDragEnd={handleDragEnd}>
+                <div className="grid grid-cols-3 gap-6">
+                  {/* Pendiente Column */}
+                  <DroppableKanbanColumn
+                    columnId="pending"
+                    title="Pendiente"
+                    tasks={pendingTasks}
+                    updating={updating}
+                    mapStatusToSpanish={mapStatusToSpanish}
+                    mapPriorityToSpanish={mapPriorityToSpanish}
+                    getPriorityColor={getPriorityColor}
+                  />
 
-                {/* En Progreso Column */}
-                <KanbanColumn
-                  title="En Progreso"
-                  tasks={inProgressTasks}
-                  onStatusChange={handleStatusChange}
-                  updating={updating}
-                  mapStatusToSpanish={mapStatusToSpanish}
-                  mapPriorityToSpanish={mapPriorityToSpanish}
-                  getPriorityColor={getPriorityColor}
-                />
+                  {/* En Progreso Column */}
+                  <DroppableKanbanColumn
+                    columnId="in_progress"
+                    title="En Progreso"
+                    tasks={inProgressTasks}
+                    updating={updating}
+                    mapStatusToSpanish={mapStatusToSpanish}
+                    mapPriorityToSpanish={mapPriorityToSpanish}
+                    getPriorityColor={getPriorityColor}
+                  />
 
-                {/* Completada Column */}
-                <KanbanColumn
-                  title="Completada"
-                  tasks={completedTasks}
-                  onStatusChange={handleStatusChange}
-                  updating={updating}
-                  mapStatusToSpanish={mapStatusToSpanish}
-                  mapPriorityToSpanish={mapPriorityToSpanish}
-                  getPriorityColor={getPriorityColor}
-                />
-              </div>
+                  {/* Completada Column */}
+                  <DroppableKanbanColumn
+                    columnId="completed"
+                    title="Completada"
+                    tasks={completedTasks}
+                    updating={updating}
+                    mapStatusToSpanish={mapStatusToSpanish}
+                    mapPriorityToSpanish={mapPriorityToSpanish}
+                    getPriorityColor={getPriorityColor}
+                  />
+                </div>
+              </DndContext>
             )}
 
             {/* Create Task Modal */}
@@ -476,7 +518,125 @@ export default function UserViewPage() {
 }
 
 
-// Kanban Column Component
+// Droppable Kanban Column Component
+function DroppableKanbanColumn({
+  columnId,
+  title,
+  tasks,
+  updating,
+  mapStatusToSpanish,
+  mapPriorityToSpanish,
+  getPriorityColor,
+}: {
+  columnId: "pending" | "in_progress" | "completed";
+  title: string;
+  tasks: TaskDTO[];
+  updating: number | null;
+  mapStatusToSpanish: (status: TaskDTO["status"]) => string;
+  mapPriorityToSpanish: (priority: TaskDTO["priority"]) => string;
+  getPriorityColor: (priority: TaskDTO["priority"]) => string;
+}) {
+  const { setNodeRef, isOver } = useDroppable({
+    id: columnId,
+  });
+
+  const getColumnColor = (title: string) => {
+    if (title === "Pendiente") return "bg-gray-50";
+    if (title === "En Progreso") return "bg-blue-50";
+    if (title === "Completada") return "bg-green-50";
+    return "bg-gray-50";
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      className={`${getColumnColor(title)} border rounded-xl p-4 min-h-96 transition-colors ${
+        isOver ? "ring-2 ring-red-500 bg-red-50" : ""
+      }`}
+    >
+      <h3 className="text-lg font-semibold text-black mb-4">{title}</h3>
+      <div className="space-y-3">
+        {tasks.length === 0 ? (
+          <p className="text-sm text-gray-500 text-center py-8">Sin tareas</p>
+        ) : (
+          tasks.map((task) => (
+            <DraggableTaskCard
+              key={task.id}
+              task={task}
+              updating={updating}
+              mapStatusToSpanish={mapStatusToSpanish}
+              mapPriorityToSpanish={mapPriorityToSpanish}
+              getPriorityColor={getPriorityColor}
+            />
+          ))
+        )}
+      </div>
+    </div>
+  );
+}
+
+// Draggable Task Card Component
+function DraggableTaskCard({
+  task,
+  updating,
+  mapStatusToSpanish,
+  mapPriorityToSpanish,
+  getPriorityColor,
+}: {
+  task: TaskDTO;
+  updating: number | null;
+  mapStatusToSpanish: (status: TaskDTO["status"]) => string;
+  mapPriorityToSpanish: (priority: TaskDTO["priority"]) => string;
+  getPriorityColor: (priority: TaskDTO["priority"]) => string;
+}) {
+  const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
+    id: `task-${task.id}`,
+  });
+
+  const style = transform
+    ? {
+        transform: CSS.Transform.toString(transform),
+      }
+    : undefined;
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      {...attributes}
+      {...listeners}
+      className={`bg-white rounded-lg p-4 shadow-sm border hover:shadow-md transition-all cursor-grab active:cursor-grabbing ${
+        isDragging ? "opacity-50" : "opacity-100"
+      }`}
+    >
+      <h4 className="font-semibold text-black text-sm mb-2">{task.title}</h4>
+      {task.description && (
+        <p className="text-xs text-gray-600 mb-3 line-clamp-2">{task.description}</p>
+      )}
+
+      <div className="flex gap-2 mb-3 flex-wrap">
+        <span className={`text-xs px-2 py-1 rounded ${getPriorityColor(task.priority)}`}>
+          {mapPriorityToSpanish(task.priority)}
+        </span>
+        {task.dueDate && (
+          <span className="text-xs text-gray-600 px-2 py-1 bg-gray-100 rounded">
+            {new Intl.DateTimeFormat("es-MX", {
+              month: "short",
+              day: "numeric",
+            }).format(new Date(task.dueDate))}
+          </span>
+        )}
+      </div>
+
+      {updating === task.id && (
+        <div className="text-xs text-gray-500 text-center py-1">Actualizando...</div>
+      )}
+    </div>
+  );
+}
+
+
+// Kanban Column Component (kept for backwards compatibility, now unused)
 function KanbanColumn({
   title,
   tasks,
