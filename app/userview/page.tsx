@@ -3,9 +3,9 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import ProtectedRoute from "@/components/ProtectedRoute";
-import { getTasks, getUserGroups, updateTaskStatus, createTask, getTodoListsByGroup, TaskDTO, Group, CreateTaskRequest } from "@/lib/api";
+import { getTasks, getUserGroups, updateTaskStatus, createTask, getTodoListsByGroup, TaskDTO, Group, CreateTaskRequest, updateTask } from "@/lib/api";
 import { getUser, clearSession } from "@/lib/session";
-import { Plus, Clock, CheckCircle2, AlertCircle, X, SquareChartGantt, LogOut, LayoutDashboard, Folder, CheckSquare } from "lucide-react";
+import { Plus, Clock, CheckCircle2, AlertCircle, X, SquareChartGantt, LogOut, LayoutDashboard, Folder, CheckSquare, MoreVertical } from "lucide-react";
 import { DndContext, DragEndEvent, useDroppable, useDraggable } from "@dnd-kit/core";
 import { CSS } from "@dnd-kit/utilities";
 
@@ -78,6 +78,8 @@ export default function UserViewPage() {
   const [creating, setCreating] = useState(false);
   const [updating, setUpdating] = useState<number | null>(null);
   const [user, setUser] = useState<any>(null);
+  const [selectedTask, setSelectedTask] = useState<TaskDTO | null>(null);
+  const [showDetailModal, setShowDetailModal] = useState(false);
 
   const [formData, setFormData] = useState({
     groupId: "",
@@ -375,6 +377,10 @@ export default function UserViewPage() {
                     mapStatusToSpanish={mapStatusToSpanish}
                     mapPriorityToSpanish={mapPriorityToSpanish}
                     getPriorityColor={getPriorityColor}
+                    onTaskClick={(task) => {
+                      setSelectedTask(task);
+                      setShowDetailModal(true);
+                    }}
                   />
 
                   {/* En Progreso Column */}
@@ -386,6 +392,10 @@ export default function UserViewPage() {
                     mapStatusToSpanish={mapStatusToSpanish}
                     mapPriorityToSpanish={mapPriorityToSpanish}
                     getPriorityColor={getPriorityColor}
+                    onTaskClick={(task) => {
+                      setSelectedTask(task);
+                      setShowDetailModal(true);
+                    }}
                   />
 
                   {/* Completada Column */}
@@ -397,6 +407,10 @@ export default function UserViewPage() {
                     mapStatusToSpanish={mapStatusToSpanish}
                     mapPriorityToSpanish={mapPriorityToSpanish}
                     getPriorityColor={getPriorityColor}
+                    onTaskClick={(task) => {
+                      setSelectedTask(task);
+                      setShowDetailModal(true);
+                    }}
                   />
                 </div>
               </DndContext>
@@ -510,6 +524,23 @@ export default function UserViewPage() {
                 </div>
               </div>
             )}
+
+            {/* Task Detail Modal */}
+            {showDetailModal && selectedTask && (
+              <TaskDetailModal
+                task={selectedTask}
+                onClose={() => setShowDetailModal(false)}
+                onTaskUpdate={(updatedTask) => {
+                  setAllTasks((tasks) =>
+                    tasks.map((t) => (t.id === updatedTask.id ? updatedTask : t))
+                  );
+                  setShowDetailModal(false);
+                  setSelectedTask(null);
+                }}
+                mapStatusToSpanish={mapStatusToSpanish}
+                mapPriorityToSpanish={mapPriorityToSpanish}
+              />
+            )}
           </>
         )}
       </main>
@@ -527,6 +558,7 @@ function DroppableKanbanColumn({
   mapStatusToSpanish,
   mapPriorityToSpanish,
   getPriorityColor,
+  onTaskClick,
 }: {
   columnId: "pending" | "in_progress" | "completed";
   title: string;
@@ -535,6 +567,7 @@ function DroppableKanbanColumn({
   mapStatusToSpanish: (status: TaskDTO["status"]) => string;
   mapPriorityToSpanish: (priority: TaskDTO["priority"]) => string;
   getPriorityColor: (priority: TaskDTO["priority"]) => string;
+  onTaskClick: (task: TaskDTO) => void;
 }) {
   const { setNodeRef, isOver } = useDroppable({
     id: columnId,
@@ -567,6 +600,7 @@ function DroppableKanbanColumn({
               mapStatusToSpanish={mapStatusToSpanish}
               mapPriorityToSpanish={mapPriorityToSpanish}
               getPriorityColor={getPriorityColor}
+              onTaskClick={onTaskClick}
             />
           ))
         )}
@@ -582,12 +616,14 @@ function DraggableTaskCard({
   mapStatusToSpanish,
   mapPriorityToSpanish,
   getPriorityColor,
+  onTaskClick,
 }: {
   task: TaskDTO;
   updating: number | null;
   mapStatusToSpanish: (status: TaskDTO["status"]) => string;
   mapPriorityToSpanish: (priority: TaskDTO["priority"]) => string;
   getPriorityColor: (priority: TaskDTO["priority"]) => string;
+  onTaskClick: (task: TaskDTO) => void;
 }) {
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: `task-${task.id}`,
@@ -609,7 +645,19 @@ function DraggableTaskCard({
         isDragging ? "opacity-50" : "opacity-100"
       }`}
     >
-      <h4 className="font-semibold text-black text-sm mb-2">{task.title}</h4>
+      <div className="flex justify-between items-start mb-2">
+        <h4 className="font-semibold text-black text-sm flex-1">{task.title}</h4>
+        <button
+          onClick={(e) => {
+            e.preventDefault();
+            onTaskClick(task);
+          }}
+          className="text-gray-400 hover:text-gray-600 p-1 ml-2"
+        >
+          <MoreVertical size={16} />
+        </button>
+      </div>
+
       {task.description && (
         <p className="text-xs text-gray-600 mb-3 line-clamp-2">{task.description}</p>
       )}
@@ -618,6 +666,11 @@ function DraggableTaskCard({
         <span className={`text-xs px-2 py-1 rounded ${getPriorityColor(task.priority)}`}>
           {mapPriorityToSpanish(task.priority)}
         </span>
+        {task.storyPoints && (
+          <span className="text-xs text-gray-700 px-2 py-1 bg-gray-100 rounded">
+            {task.storyPoints} SP
+          </span>
+        )}
         {task.dueDate && (
           <span className="text-xs text-gray-600 px-2 py-1 bg-gray-100 rounded">
             {new Intl.DateTimeFormat("es-MX", {
@@ -635,6 +688,198 @@ function DraggableTaskCard({
   );
 }
 
+
+// Task Detail Modal Component
+function TaskDetailModal({
+  task,
+  onClose,
+  onTaskUpdate,
+  mapStatusToSpanish,
+  mapPriorityToSpanish,
+}: {
+  task: TaskDTO;
+  onClose: () => void;
+  onTaskUpdate: (updatedTask: TaskDTO) => void;
+  mapStatusToSpanish: (status: TaskDTO["status"]) => string;
+  mapPriorityToSpanish: (priority: TaskDTO["priority"]) => string;
+}) {
+  const [formData, setFormData] = useState({
+    description: task.description || "",
+    priority: task.priority,
+    storyPoints: task.storyPoints || "",
+    sprint: task.sprint || "",
+    dueDate: task.dueDate ? task.dueDate.split("T")[0] : "",
+    status: task.status,
+  });
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
+
+  const handleSave = async () => {
+    try {
+      setSaving(true);
+      setError("");
+
+      // Call API to update task
+      const storyPointsValue = formData.storyPoints ? parseInt(String(formData.storyPoints), 10) : null;
+
+      const updatedTask = await updateTask(task.id, {
+        title: task.title,
+        description: formData.description || null,
+        priority: formData.priority as "low" | "medium" | "high",
+        storyPoints: storyPointsValue,
+        sprint: formData.sprint || null,
+        dueDate: formData.dueDate ? `${formData.dueDate}T00:00:00` : null,
+        status: formData.status as "pending" | "in_progress" | "completed",
+      } as Partial<TaskDTO>);
+
+      onTaskUpdate(updatedTask);
+    } catch (err) {
+      console.error(err);
+      setError("Error al guardar los cambios");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 backdrop-blur-sm bg-black/20 flex items-center justify-end z-50">
+      <div className="bg-white rounded-l-xl p-8 w-full max-w-md max-h-screen overflow-y-auto shadow-xl">
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-2xl text-black font-semibold">{task.id}</h2>
+          <button
+            onClick={onClose}
+            className="text-gray-500 hover:text-gray-700"
+          >
+            <X size={24} />
+          </button>
+        </div>
+
+        <div className="mb-6">
+          <h3 className="text-lg font-semibold text-black mb-2">{task.title}</h3>
+        </div>
+
+        {error && (
+          <div className="bg-red-100 text-red-700 p-3 rounded-lg mb-4">
+            {error}
+          </div>
+        )}
+
+        <div className="space-y-6">
+          {/* Description */}
+          <div>
+            <label className="text-sm font-medium text-gray-700 block mb-2">
+              Descripción
+            </label>
+            <textarea
+              value={formData.description}
+              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+              rows={4}
+              className="w-full border rounded-lg px-3 py-2 text-gray-600 bg-gray-50"
+            />
+          </div>
+
+          {/* Properties */}
+          <div>
+            <h4 className="text-sm font-semibold text-gray-700 mb-4">Propiedades</h4>
+
+            <div className="space-y-4">
+              {/* Status */}
+              <div>
+                <label className="text-sm font-medium text-gray-700 block mb-2">
+                  Estado
+                </label>
+                <select
+                  value={formData.status}
+                  onChange={(e) => setFormData({ ...formData, status: e.target.value as "pending" | "in_progress" | "completed" })}
+                  className="w-full border rounded-lg px-3 py-2 text-gray-600"
+                >
+                  <option value="pending">Pendiente</option>
+                  <option value="in_progress">En Progreso</option>
+                  <option value="completed">Completada</option>
+                </select>
+              </div>
+
+              {/* Priority */}
+              <div>
+                <label className="text-sm font-medium text-gray-700 block mb-2">
+                  Prioridad
+                </label>
+                <select
+                  value={formData.priority}
+                  onChange={(e) => setFormData({ ...formData, priority: e.target.value as "low" | "medium" | "high" })}
+                  className="w-full border rounded-lg px-3 py-2 text-gray-600"
+                >
+                  <option value="low">Baja</option>
+                  <option value="medium">Media</option>
+                  <option value="high">Alta</option>
+                </select>
+              </div>
+
+              {/* Story Points */}
+              <div>
+                <label className="text-sm font-medium text-gray-700 block mb-2">
+                  Story Points
+                </label>
+                <input
+                  type="number"
+                  value={formData.storyPoints}
+                  onChange={(e) => setFormData({ ...formData, storyPoints: e.target.value })}
+                  placeholder="0"
+                  min="0"
+                  className="w-full border rounded-lg px-3 py-2 text-gray-600"
+                />
+              </div>
+
+              {/* Sprint */}
+              <div>
+                <label className="text-sm font-medium text-gray-700 block mb-2">
+                  Sprint
+                </label>
+                <input
+                  type="text"
+                  value={formData.sprint}
+                  onChange={(e) => setFormData({ ...formData, sprint: e.target.value })}
+                  placeholder="Sprint 1"
+                  className="w-full border rounded-lg px-3 py-2 text-gray-600"
+                />
+              </div>
+
+              {/* Date */}
+              <div>
+                <label className="text-sm font-medium text-gray-700 block mb-2">
+                  Fecha
+                </label>
+                <input
+                  type="date"
+                  value={formData.dueDate}
+                  onChange={(e) => setFormData({ ...formData, dueDate: e.target.value })}
+                  className="w-full border rounded-lg px-3 py-2 text-gray-600"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Buttons */}
+        <div className="flex gap-3 mt-8">
+          <button
+            onClick={onClose}
+            className="flex-1 border rounded-lg px-4 py-2 text-gray-700 hover:bg-gray-50"
+          >
+            Cancelar
+          </button>
+          <button
+            onClick={handleSave}
+            disabled={saving}
+            className="flex-1 bg-red-600 hover:bg-red-700 text-white rounded-lg px-4 py-2 disabled:opacity-50"
+          >
+            {saving ? "Guardando..." : "Guardar cambios"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 // Kanban Column Component (kept for backwards compatibility, now unused)
 function KanbanColumn({
