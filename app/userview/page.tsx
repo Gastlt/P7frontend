@@ -648,8 +648,13 @@ function DraggableTaskCard({
       <div className="flex justify-between items-start mb-2">
         <h4 className="font-semibold text-black text-sm flex-1">{task.title}</h4>
         <button
+          onPointerDown={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+          }}
           onClick={(e) => {
             e.preventDefault();
+            e.stopPropagation();
             onTaskClick(task);
           }}
           className="text-gray-400 hover:text-gray-600 p-1 ml-2"
@@ -704,6 +709,7 @@ function TaskDetailModal({
   mapPriorityToSpanish: (priority: TaskDTO["priority"]) => string;
 }) {
   const [formData, setFormData] = useState({
+    title: task.title,
     description: task.description || "",
     priority: task.priority,
     storyPoints: task.storyPoints || "",
@@ -713,17 +719,25 @@ function TaskDetailModal({
   });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState(false);
 
   const handleSave = async () => {
     try {
       setSaving(true);
       setError("");
+      setSuccess(false);
+
+      // Validate title
+      if (!formData.title.trim()) {
+        setError("El título es obligatorio");
+        return;
+      }
 
       // Call API to update task
       const storyPointsValue = formData.storyPoints ? parseInt(String(formData.storyPoints), 10) : null;
 
       const updatedTask = await updateTask(task.id, {
-        title: task.title,
+        title: formData.title,
         description: formData.description || null,
         priority: formData.priority as "low" | "medium" | "high",
         storyPoints: storyPointsValue,
@@ -732,7 +746,10 @@ function TaskDetailModal({
         status: formData.status as "pending" | "in_progress" | "completed",
       } as Partial<TaskDTO>);
 
-      onTaskUpdate(updatedTask);
+      setSuccess(true);
+      setTimeout(() => {
+        onTaskUpdate(updatedTask);
+      }, 1000);
     } catch (err) {
       console.error(err);
       setError("Error al guardar los cambios");
@@ -745,7 +762,7 @@ function TaskDetailModal({
     <div className="fixed inset-0 backdrop-blur-sm bg-black/20 flex items-center justify-end z-50">
       <div className="bg-white rounded-l-xl p-8 w-full max-w-md max-h-screen overflow-y-auto shadow-xl">
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-2xl text-black font-semibold">{task.id}</h2>
+          <h2 className="text-xs text-gray-500 font-semibold">#{task.id}</h2>
           <button
             onClick={onClose}
             className="text-gray-500 hover:text-gray-700"
@@ -754,17 +771,32 @@ function TaskDetailModal({
           </button>
         </div>
 
-        <div className="mb-6">
-          <h3 className="text-lg font-semibold text-black mb-2">{task.title}</h3>
-        </div>
-
         {error && (
           <div className="bg-red-100 text-red-700 p-3 rounded-lg mb-4">
             {error}
           </div>
         )}
 
+        {success && (
+          <div className="bg-green-100 text-green-700 p-3 rounded-lg mb-4">
+            ✓ Cambios guardados correctamente
+          </div>
+        )}
+
         <div className="space-y-6">
+          {/* Title */}
+          <div>
+            <label className="text-sm font-medium text-gray-700 block mb-2">
+              Título
+            </label>
+            <input
+              type="text"
+              value={formData.title}
+              onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+              className="w-full border rounded-lg px-3 py-2 text-gray-600 font-semibold text-lg"
+            />
+          </div>
+
           {/* Description */}
           <div>
             <label className="text-sm font-medium text-gray-700 block mb-2">
@@ -856,6 +888,42 @@ function TaskDetailModal({
                   className="w-full border rounded-lg px-3 py-2 text-gray-600"
                 />
               </div>
+
+              {/* Assigned User (read-only) */}
+              {task.assigneeName && (
+                <div>
+                  <label className="text-sm font-medium text-gray-700 block mb-2">
+                    Asignado a
+                  </label>
+                  <div className="w-full border rounded-lg px-3 py-2 text-gray-600 bg-gray-50">
+                    {task.assigneeName}
+                  </div>
+                </div>
+              )}
+
+              {/* Group (read-only) */}
+              {task.groupName && (
+                <div>
+                  <label className="text-sm font-medium text-gray-700 block mb-2">
+                    Grupo
+                  </label>
+                  <div className="w-full border rounded-lg px-3 py-2 text-gray-600 bg-gray-50">
+                    {task.groupName}
+                  </div>
+                </div>
+              )}
+
+              {/* Todo List (read-only) */}
+              {task.todoListName && (
+                <div>
+                  <label className="text-sm font-medium text-gray-700 block mb-2">
+                    Lista
+                  </label>
+                  <div className="w-full border rounded-lg px-3 py-2 text-gray-600 bg-gray-50">
+                    {task.todoListName}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>
