@@ -159,7 +159,7 @@ export default function AllTasksPage() {
           </div>
 
           <button
-            onClick={() => router.push("/tasks/create")}
+            onClick={() => router.push("/alltasks/create")}
             className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg"
           >
             + Nueva tarea
