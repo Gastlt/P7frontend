@@ -295,14 +295,6 @@ export default function GroupsPage() {
             <p className="text-gray-500">Maneja las tareas por grupo</p>
           </div>
 
-          <button
-            type="button"
-            onClick={() => setIsCreateModalOpen(true)}
-            className="inline-flex h-10 shrink-0 items-center gap-2 rounded-lg bg-red-600 px-4 text-sm font-medium text-white shadow-sm hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
-          >
-            <Plus size={16} />
-            Crear grupo
-          </button>
         </div>
 
         {error && (
@@ -310,27 +302,6 @@ export default function GroupsPage() {
             {error}
           </div>
         )}
-
-        {/* Filter */}
-        <div className="bg-white border rounded-xl p-4 mb-6">
-          <div className="flex items-center gap-3 flex-wrap">
-            <span className="text-gray-600">Filtrar por persona:</span>
-
-            {people.map((person, index) => (
-              <button
-                key={`person-${index}`}
-                onClick={() => setSelectedPerson(person)}
-                className={`px-4 py-1.5 rounded-lg text-sm text-gray-600 ${
-                  selectedPerson === person
-                    ? "bg-red-500 text-white"
-                    : "bg-gray-100 hover:bg-gray-200"
-                }`}
-              >
-                {person}
-              </button>
-            ))}
-          </div>
-        </div>
 
         {/* Cards */}
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">

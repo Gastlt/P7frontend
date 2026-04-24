@@ -8,62 +8,7 @@ import { getUser, clearSession } from "@/lib/session";
 import { Plus, Clock, CheckCircle2, AlertCircle, X, SquareChartGantt, LogOut, LayoutDashboard, Folder, CheckSquare } from "lucide-react";
 
 // User sidebar component
-function UserSidebar({ userName }: { userName: string }) {
-  const router = useRouter();
 
-  const handleLogout = () => {
-    clearSession();
-    router.push("/auth/login");
-  };
-
-  return (
-    <aside className="w-64 bg-white border-r p-4 flex flex-col justify-between">
-      <div>
-        <div className="mb-8 flex items-center gap-3">
-          <div className="bg-red-500 text-white p-2 rounded-lg">
-            <SquareChartGantt size={20} />
-          </div>
-
-          <div>
-            <h2 className="font-bold text-sm text-black leading-tight">
-              {userName}
-            </h2>
-            <p className="text-sm text-gray-600">
-              Usuario
-            </p>
-          </div>
-        </div>
-
-        <nav className="space-y-2">
-          <a
-            href="/"
-            className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 text-gray-700 transition-colors"
-          >
-            <LayoutDashboard size={18} className="text-gray-500" />
-            Dashboard
-          </a>
-          <a
-            href="/userview"
-            className="flex items-center gap-3 px-3 py-2 rounded-lg bg-red-500 text-white transition-colors"
-          >
-            <CheckSquare size={18} />
-            Mis Tareas
-          </a>
-        </nav>
-      </div>
-
-      <div className="pt-6 border-t">
-        <button
-          onClick={handleLogout}
-          className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-red-600 hover:bg-red-50 transition-colors"
-        >
-          <LogOut size={18} />
-          Cerrar sesión
-        </button>
-      </div>
-    </aside>
-  );
-}
 
 export default function UserViewPage() {
   const router = useRouter();
@@ -246,7 +191,7 @@ export default function UserViewPage() {
 
   return (
     <ProtectedRoute>
-      <UserSidebar userName={userName} />
+      
 
       <main className="flex-1 p-8">
         {loading ? (

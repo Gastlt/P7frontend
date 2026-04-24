@@ -83,7 +83,7 @@ export default function Sidebar() {
         <nav className="space-y-2">
           {link("/", "Dashboard", LayoutDashboard)}
           {link("/userview", "Mis Tareas", CheckSquare)}
-          {link("/groups", "Grupos", Folder)}
+          {link("/groups", "Mis Grupos", Folder)}
           {link("/sprints", "Sprints", CalendarRange)}
           {link("/alltasks", "Todas las Tareas", CheckSquare)}
 
