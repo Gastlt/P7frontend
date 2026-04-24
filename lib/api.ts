@@ -42,6 +42,7 @@ export type CreateTaskRequest = {
   priority: string;
   dueDate?: string | null;
   createdById: number;
+  sprint?: string | null;
 };
 
 export type TaskDTO = {

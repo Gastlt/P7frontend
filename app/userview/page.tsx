@@ -87,6 +87,7 @@ export default function UserViewPage() {
     description: "",
     priority: "medium",
     dueDate: "",
+    sprint: "",
   });
 
   // Load data on mount
@@ -166,6 +167,7 @@ export default function UserViewPage() {
         priority: formData.priority,
         dueDate: formData.dueDate ? `${formData.dueDate}T00:00:00` : null,
         createdById: user?.userId || 0,
+        sprint: formData.sprint || null,
       };
 
       await createTask(payload);
@@ -181,6 +183,7 @@ export default function UserViewPage() {
         description: "",
         priority: "medium",
         dueDate: "",
+        sprint: "",
       });
       setShowCreateModal(false);
     } catch (err) {
@@ -490,6 +493,19 @@ export default function UserViewPage() {
                         <option value="medium">Media</option>
                         <option value="high">Alta</option>
                       </select>
+                    </div>
+
+                    <div className="mb-4">
+                      <label className="text-sm font-medium text-gray-700 block mb-2">
+                        Sprint
+                      </label>
+                      <input
+                        type="text"
+                        value={formData.sprint}
+                        onChange={(e) => setFormData({ ...formData, sprint: e.target.value })}
+                        placeholder="Sprint 1"
+                        className="w-full border rounded-lg px-3 py-2 text-gray-600"
+                      />
                     </div>
 
                     <div className="mb-6">
