@@ -15,12 +15,25 @@ import {
   LogOut,
   CalendarRange
 } from "lucide-react";
+import { useEffect, useState } from "react";
+import { getUser } from "@/lib/session";
 
 import { clearSession } from "@/lib/session";
 
 export default function Sidebar() {
+  const [user, setUser] = useState<any>(null);
+
   const pathname = usePathname();
   const router = useRouter();
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      const userData = await getUser();
+      setUser(userData);
+    };
+
+    fetchUser();
+  }, []);
 
   const handleLogout = () => {
     clearSession();
@@ -59,10 +72,10 @@ export default function Sidebar() {
 
           <div>
             <h2 className="font-bold text-l text-black leading-tight">
-              Dashboard de Gestión
+              {user ? `Hola, ${user.name}` : "Cargando..."}
             </h2>
             <p className="text-sm text-gray-600">
-              Super Admin
+              {user?.email || "Usuario"}
             </p>
           </div>
         </div>
@@ -72,7 +85,7 @@ export default function Sidebar() {
           {link("/userview", "Mis Tareas", CheckSquare)}
           {link("/groups", "Grupos", Folder)}
           {link("/sprints", "Sprints", CalendarRange)}
-          {link("/tasks", "Todas las Tareas", CheckSquare)}
+          {link("/alltasks", "Todas las Tareas", CheckSquare)}
 
           <div className="pt-6 text-sm text-gray-500">
             Acceso Rápido

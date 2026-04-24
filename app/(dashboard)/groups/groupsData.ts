@@ -10,6 +10,23 @@
  *  - GET /todolist
  */
 
+import { getToken } from "@/lib/session";
+
+function getAuthHeaders() {
+  const headers: HeadersInit = {
+    "Content-Type": "application/json",
+  };
+
+  if (typeof window !== "undefined") {
+    const token = getToken() || localStorage.getItem("accessToken");
+    if (token) {
+      headers["Authorization"] = `Bearer ${token}`;
+    }
+  }
+
+  return headers;
+}
+
 const API_BASE_URL = "http://localhost:8080";
 
 export type User = {
@@ -202,9 +219,16 @@ export async function fetchTasks(): Promise<Task[]> {
   try {
     const response = await fetch(`${API_BASE_URL}/api/tasks`, {
       method: "GET",
-      headers: { "Content-Type": "application/json" },
+      headers: getAuthHeaders(),
     });
-    if (!response.ok) throw new Error(`Failed to fetch tasks: ${response.statusText}`);
+
+    if (!response.ok) {
+      const errorBody = await response.text();
+      throw new Error(
+        `Failed to fetch tasks: ${response.status} ${response.statusText} - ${errorBody}`
+      );
+    }
+
     return await response.json();
   } catch (error) {
     console.error("Error fetching tasks:", error);
