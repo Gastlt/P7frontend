@@ -12,7 +12,8 @@ import {
   CheckCircle,
   Settings,
   SquareChartGantt,
-  LogOut
+  LogOut,
+  CalendarRange
 } from "lucide-react";
 
 import { clearSession } from "@/lib/session";
@@ -70,6 +71,7 @@ export default function Sidebar() {
           {link("/", "Dashboard", LayoutDashboard)}
           {link("/userview", "Mis Tareas", CheckSquare)}
           {link("/groups", "Grupos", Folder)}
+          {link("/sprints", "Sprints", CalendarRange)}
           {link("/tasks", "Todas las Tareas", CheckSquare)}
 
           <div className="pt-6 text-sm text-gray-500">
