@@ -10,6 +10,23 @@
  *  - GET /todolist
  */
 
+import { getToken } from "@/lib/session";
+
+function getAuthHeaders() {
+  const headers: HeadersInit = {
+    "Content-Type": "application/json",
+  };
+
+  if (typeof window !== "undefined") {
+    const token = getToken() || localStorage.getItem("accessToken");
+    if (token) {
+      headers["Authorization"] = `Bearer ${token}`;
+    }
+  }
+
+  return headers;
+}
+
 const API_BASE_URL = "http://localhost:8080";
 
 export type User = {
@@ -62,6 +79,8 @@ export type Task = {
   createdBy?: User;
   createdAt?: string;
   todoList?: TodoList;
+  groupName?: string;
+  assigneeName?: string;
 };
 
 export type TaskAssignment = {
@@ -142,6 +161,25 @@ export async function fetchGroupMembers(): Promise<GroupMember[]> {
   }
 }
 
+export async function fetchMyGroupMembers(): Promise<GroupMember[]> {
+  const response = await fetch(`${API_BASE_URL}/api/group-members/me`, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${getToken()}`,
+    },
+  });
+
+  if (!response.ok) {
+    const errorBody = await response.text();
+    throw new Error(
+      `Failed to fetch my group memberships: ${response.status} - ${errorBody}`
+    );
+  }
+
+  return response.json();
+}
+
 /**
  * Fetch group members by group ID
  */
@@ -200,9 +238,16 @@ export async function fetchTasks(): Promise<Task[]> {
   try {
     const response = await fetch(`${API_BASE_URL}/api/tasks`, {
       method: "GET",
-      headers: { "Content-Type": "application/json" },
+      headers: getAuthHeaders(),
     });
-    if (!response.ok) throw new Error(`Failed to fetch tasks: ${response.statusText}`);
+
+    if (!response.ok) {
+      const errorBody = await response.text();
+      throw new Error(
+        `Failed to fetch tasks: ${response.status} ${response.statusText} - ${errorBody}`
+      );
+    }
+
     return await response.json();
   } catch (error) {
     console.error("Error fetching tasks:", error);
@@ -333,56 +378,69 @@ export async function fetchAllGroupsData(): Promise<Group[]> {
       await Promise.all([
         fetchTaskGroups(),
         fetchUsers(),
-        fetchGroupMembers(),
+        fetchMyGroupMembers(),
         fetchTodoLists(),
         fetchTasks(),
         fetchTaskAssignments(),
       ]);
 
-    console.log("Fetched data:", { 
+    console.log("Fetched data:", {
       taskGroupsCount: taskGroups.length,
       usersCount: users.length,
-      groupMembersCount: groupMembers.length,
+      myGroupMembersCount: groupMembers.length,
       todoListsCount: todoLists.length,
       tasksCount: tasks.length,
       taskAssignmentsCount: taskAssignments.length,
     });
 
-    return taskGroups.map((g) => {
-      const lists = todoLists.filter((l) => l.groupId === g.id || l.group?.id === g.id);
-      
-      // Mapear tareas a listas - algunos endpoints devuelven listId, otros usan groupName
+    const myGroupIds = groupMembers
+      .map((m) => m.groupId ?? m.group?.id)
+      .filter((id): id is number => id !== undefined && id !== null);
+
+    const myTaskGroups = taskGroups.filter((g) =>
+      myGroupIds.includes(g.id)
+    );
+
+    console.log("My group IDs:", myGroupIds);
+    console.log("My task groups:", myTaskGroups);
+
+    return myTaskGroups.map((g) => {
+      const lists = todoLists.filter(
+        (l) => l.groupId === g.id || l.group?.id === g.id
+      );
+
       const groupTasks = tasks.filter((t) => {
-        // Si la tarea tiene listId directo, verificar si es de este grupo
         if (t.listId) {
           return lists.some((l) => l.id === t.listId);
         }
-        // Si no tiene listId pero tiene groupName, comparar por nombre del grupo
-        if ((t as any).groupName) {
-          return (t as any).groupName === g.name;
+
+        if (t.groupName) {
+          return t.groupName === g.name;
         }
+
         return false;
       });
-      
-      // Obtener miembros del grupo desde BD
-      // Maneja tanto el formato con IDs directos como objetos anidados
+
       const dbMembers = groupMembers
         .filter((m) => {
-          // Comparar con groupId directo o con objeto group anidado
           const memberGroupId = m.groupId ?? m.group?.id;
           return memberGroupId === g.id;
         })
         .map((m) => {
-          // Extraer usuario de userid directo o de objeto user anidado
           const userId = m.userId ?? m.user?.id;
           const user = m.user || users.find((x) => x.id === userId);
-          return user ? user.name : `user-${userId}`;
+
+          return user
+            ? user.name
+            : m.userName ?? m.userEmail ?? `user-${userId}`;
         });
 
-      // Si no hay miembros en BD, usar todos los usuarios como fallback
-      const members = dbMembers.length > 0 ? dbMembers : users.map(u => u.name);
+      const members = dbMembers;
 
-      console.log(`Group ${g.id} (${g.name}): ${members.length} members -`, members);
+      console.log(
+        `Group ${g.id} (${g.name}): ${members.length} members -`,
+        members
+      );
 
       return {
         id: g.id,
@@ -396,12 +454,14 @@ export async function fetchAllGroupsData(): Promise<Group[]> {
           title: t.title,
           description: t.description,
           priority: t.priority as "low" | "medium" | "high" | undefined,
-          // Usar assigneeName del backend si está disponible, sino buscar en taskAssignments
-          assignee: (t as any).assigneeName ?? 
-                    users.find(
-                      (u) => u.id === (taskAssignments.find((a) => a.taskId === t.id)?.userId ?? -1)
-                    )?.name ?? 
-                    "Unassigned",
+          assignee:
+            t.assigneeName ??
+            users.find(
+              (u) =>
+                u.id ===
+                (taskAssignments.find((a) => a.taskId === t.id)?.userId ?? -1)
+            )?.name ??
+            "Unassigned",
           dueDate: t.dueDate ?? null,
           status: t.status as GroupTaskStatus,
         })),
@@ -568,13 +628,10 @@ export async function deleteTaskAssignment(assignmentId: number): Promise<boolea
  */
 export async function createTaskGroup(group: {
   name: string;
-  description?: string;
 }): Promise<TaskGroup | null> {
   try {
     const groupData = {
       name: group.name,
-      description: group.description || "",
-      createdById: 1, // TODO: obtener el usuario actual autenticado
     };
 
     console.log("Creating task group with data:", groupData);
@@ -595,6 +652,33 @@ export async function createTaskGroup(group: {
     return responseText ? JSON.parse(responseText) : null;
   } catch (error) {
     console.error("Error creating task group:", error);
+    return null;
+  }
+}
+
+/**
+ * Add a user to a task group
+ */
+export async function createGroupMember(groupId: number, userId: number): Promise<GroupMember | null> {
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/group-members`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        group: { id: groupId },
+        user: { id: userId },
+      }),
+    });
+
+    const responseText = await response.text();
+
+    if (!response.ok) {
+      throw new Error(`Failed to add group member: ${response.status} ${responseText}`);
+    }
+
+    return responseText ? JSON.parse(responseText) : null;
+  } catch (error) {
+    console.error(`Error adding user ${userId} to group ${groupId}:`, error);
     return null;
   }
 }
