@@ -81,6 +81,7 @@ export type Task = {
   todoList?: TodoList;
   groupName?: string;
   assigneeName?: string;
+  sprintId?: number | null;
 };
 
 export type TaskAssignment = {
@@ -707,4 +708,37 @@ export async function deleteTaskGroup(groupId: number): Promise<boolean> {
     console.error(`Error deleting task group ${groupId}:`, error);
     return false;
   }
+}
+
+export type Sprint = {
+  id: number;
+  name: string;
+  groupId?: number;
+  group?: {
+    id: number;
+    name: string;
+  };
+  startDate?: string;
+  endDate?: string;
+  status?: "planned" | "active" | "completed";
+  createdAt?: string;
+};
+
+export async function fetchSprints(): Promise<Sprint[]> {
+  const response = await fetch(`${API_BASE_URL}/api/sprints`, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${getToken()}`,
+    },
+  });
+
+  if (!response.ok) {
+    const errorBody = await response.text();
+    throw new Error(
+      `Failed to fetch sprints: ${response.status} - ${errorBody}`
+    );
+  }
+
+  return response.json();
 }
