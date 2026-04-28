@@ -154,7 +154,7 @@ export default function AllTasksPage() {
           <div>
             <h1 className="text-2xl text-black font-semibold">Todas las Tareas</h1>
             <p className="text-gray-700">
-              Vista completa de todas las tareas registradas en el sistema
+              Vista completa de todas las tareas asignadas a ti y a tus grupos. Filtra, busca y gestiona tus tareas de manera eficiente.
             </p>
           </div>
 
