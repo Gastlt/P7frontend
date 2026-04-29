@@ -2,6 +2,20 @@ import { getToken } from "@/lib/session";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080/api";
 
+async function readApiError(response: Response, fallback: string) {
+  const errorText = await response.text();
+  if (!errorText) {
+    return fallback;
+  }
+
+  try {
+    const parsed = JSON.parse(errorText);
+    return parsed.message || parsed.error || errorText;
+  } catch {
+    return errorText;
+  }
+}
+
 /**
  * Get authorization headers with the access token
  */
@@ -68,8 +82,7 @@ export async function createTask(payload: CreateTaskRequest): Promise<TaskDTO> {
   });
 
   if (!response.ok) {
-    const errorText = await response.text();
-    throw new Error(errorText || "No se pudo crear la tarea");
+    throw new Error(await readApiError(response, "No se pudo crear la tarea"));
   }
 
   return response.json();

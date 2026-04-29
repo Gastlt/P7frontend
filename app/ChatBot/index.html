@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Agent UI</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+
+<div class="app">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <h2>🍷 Agent UI</h2>
+    <nav>
+      <button class="nav-item active">Tareas</button>
+      <button class="nav-item">Asistente</button>
+    </nav>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+
+    <header class="header">
+      <h1>Dashboard</h1>
+      <button id="refresh-tasks">Actualizar</button>
+    </header>
+
+    <div class="content">
+
+      <!-- TASKS -->
+      <section class="tasks">
+        <form id="task-form" class="task-form">
+          <input id="title" type="text" placeholder="Nueva tarea..." required>
+          <input id="assignee" type="text" placeholder="Responsable">
+          <input id="storyPoints" type="number" min="1" placeholder="SP">
+          <input id="sprintName" type="text" placeholder="Sprint">
+          <button type="submit">Crear</button>
+        </form>
+
+        <div id="task-list" class="task-list"></div>
+      </section>
+
+      <!-- CHAT -->
+      <section class="chat">
+        <div id="chat-messages" class="chat-messages"></div>
+
+        <form id="chat-form" class="chat-form">
+          <input id="chat-input" type="text" placeholder="Pregunta algo..." required>
+          <button type="submit">Enviar</button>
+        </form>
+
+        <div class="chat-hints">
+          <button class="hint" data-message="que tareas tiene ana">Ana</button>
+          <button class="hint" data-message="como va el sprint actual">Sprint</button>
+          <button class="hint" data-message="quien tiene mas carga">Carga</button>
+        </div>
+      </section>
+
+    </div>
+
+  </main>
+</div>
+
+<script src="/app.js"></script>
+</body>
+</html>

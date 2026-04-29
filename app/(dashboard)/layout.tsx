@@ -1,5 +1,6 @@
 import "../globals.css";
 import Sidebar from "@/components/Sidebar";
+import FloatingChatBot from "@/app/ChatBot/FloatingChatBot";
 
 export default function RootLayout({
   children,
@@ -15,6 +16,8 @@ export default function RootLayout({
           <main className="flex-1 p-8">
             {children}
           </main>
+
+          <FloatingChatBot />
         </div>
       </body>
     </html>

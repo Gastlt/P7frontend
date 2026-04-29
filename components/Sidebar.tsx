@@ -16,12 +16,12 @@ import {
   CalendarRange
 } from "lucide-react";
 import { useEffect, useState } from "react";
-import { getUser } from "@/lib/session";
+import { getUser, type SessionUser } from "@/lib/session";
 
 import { clearSession } from "@/lib/session";
 
 export default function Sidebar() {
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<SessionUser | null>(null);
 
   const pathname = usePathname();
   const router = useRouter();

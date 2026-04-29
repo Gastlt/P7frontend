@@ -4,9 +4,9 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { getTasks, getUserGroups, updateTaskStatus, createTask, getTodoListsByGroup, TaskDTO, Group, CreateTaskRequest, updateTask } from "@/lib/api";
-import { getUser, clearSession } from "@/lib/session";
+import { getUser, clearSession, type SessionUser } from "@/lib/session";
 import { Plus, Clock, CheckCircle2, AlertCircle, X, SquareChartGantt, LogOut, LayoutDashboard, Folder, CheckSquare, MoreVertical } from "lucide-react";
-import { DndContext, DragEndEvent, useDroppable, useDraggable } from "@dnd-kit/core";
+import { DndContext, DragEndEvent, DragOverlay, DragStartEvent, useDroppable, useDraggable } from "@dnd-kit/core";
 import { CSS } from "@dnd-kit/utilities";
 
 
@@ -20,9 +20,11 @@ export default function UserViewPage() {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [creating, setCreating] = useState(false);
   const [updating, setUpdating] = useState<number | null>(null);
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<SessionUser | null>(null);
   const [selectedTask, setSelectedTask] = useState<TaskDTO | null>(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
+  const [activeTask, setActiveTask] = useState<TaskDTO | null>(null);
+  const [activeTaskSize, setActiveTaskSize] = useState<{ width: number; height: number } | null>(null);
 
   const [formData, setFormData] = useState({
     groupId: "",
@@ -130,8 +132,7 @@ export default function UserViewPage() {
       });
       setShowCreateModal(false);
     } catch (err) {
-      console.error(err);
-      setError("No se pudo crear la tarea");
+      setError(err instanceof Error ? err.message : "No se pudo crear la tarea");
     } finally {
       setCreating(false);
     }
@@ -148,16 +149,28 @@ export default function UserViewPage() {
         tasks.map((t) => (t.id === taskId ? { ...t, status: newStatus } : t))
       );
     } catch (err) {
-      console.error(err);
-      setError("No se pudo actualizar el estado");
+      setError(err instanceof Error ? err.message : "No se pudo actualizar el estado");
     } finally {
       setUpdating(null);
     }
   };
 
   // Handle drag and drop
+  const handleDragStart = (event: DragStartEvent) => {
+    const taskId = parseInt(event.active.id.toString().replace("task-", ""));
+    const task = allTasks.find((t) => t.id === taskId) ?? null;
+
+    setActiveTask(task);
+
+    const rect = event.active.rect.current.initial;
+    setActiveTaskSize(rect ? { width: rect.width, height: rect.height } : null);
+  };
+
   const handleDragEnd = async (event: DragEndEvent) => {
     const { active, over } = event;
+
+    setActiveTask(null);
+    setActiveTaskSize(null);
 
     if (!over) return;
 
@@ -311,7 +324,14 @@ export default function UserViewPage() {
                 <p className="text-gray-500 mt-2">Crea una nueva tarea para empezar</p>
               </div>
             ) : (
-              <DndContext onDragEnd={handleDragEnd}>
+              <DndContext
+                onDragStart={handleDragStart}
+                onDragEnd={handleDragEnd}
+                onDragCancel={() => {
+                  setActiveTask(null);
+                  setActiveTaskSize(null);
+                }}
+              >
                 <div className="grid grid-cols-3 gap-6">
                   {/* Pendiente Column */}
                   <DroppableKanbanColumn
@@ -358,6 +378,25 @@ export default function UserViewPage() {
                     }}
                   />
                 </div>
+
+                <DragOverlay dropAnimation={null}>
+                  {activeTask ? (
+                    <div
+                      style={{
+                        width: activeTaskSize?.width,
+                        minHeight: activeTaskSize?.height,
+                      }}
+                    >
+                      <TaskCardContent
+                        task={activeTask}
+                        updating={updating}
+                        mapPriorityToSpanish={mapPriorityToSpanish}
+                        getPriorityColor={getPriorityColor}
+                        isOverlay
+                      />
+                    </div>
+                  ) : null}
+                </DragOverlay>
               </DndContext>
             )}
 
@@ -587,7 +626,7 @@ function DraggableTaskCard({
     id: `task-${task.id}`,
   });
 
-  const style = transform
+  const style = transform && !isDragging
     ? {
         transform: CSS.Transform.toString(transform),
       }
@@ -599,26 +638,62 @@ function DraggableTaskCard({
       style={style}
       {...attributes}
       {...listeners}
-      className={`bg-white rounded-lg p-4 shadow-sm border hover:shadow-md transition-all cursor-grab active:cursor-grabbing ${
-        isDragging ? "opacity-50" : "opacity-100"
+      className={`touch-none select-none cursor-grab active:cursor-grabbing ${
+        isDragging ? "opacity-35" : "opacity-100"
+      }`}
+    >
+      <TaskCardContent
+        task={task}
+        updating={updating}
+        mapPriorityToSpanish={mapPriorityToSpanish}
+        getPriorityColor={getPriorityColor}
+        onTaskClick={onTaskClick}
+      />
+    </div>
+  );
+}
+
+function TaskCardContent({
+  task,
+  updating,
+  mapPriorityToSpanish,
+  getPriorityColor,
+  onTaskClick,
+  isOverlay = false,
+}: {
+  task: TaskDTO;
+  updating: number | null;
+  mapPriorityToSpanish: (priority: TaskDTO["priority"]) => string;
+  getPriorityColor: (priority: TaskDTO["priority"]) => string;
+  onTaskClick?: (task: TaskDTO) => void;
+  isOverlay?: boolean;
+}) {
+  return (
+    <div
+      className={`w-full rounded-lg border bg-white p-4 ${
+        isOverlay
+          ? "shadow-2xl ring-2 ring-red-500/20"
+          : "shadow-sm transition-shadow hover:shadow-md"
       }`}
     >
       <div className="flex justify-between items-start mb-2">
         <h4 className="font-semibold text-black text-sm flex-1">{task.title}</h4>
-        <button
-          onPointerDown={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-          }}
-          onClick={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            onTaskClick(task);
-          }}
-          className="text-gray-400 hover:text-gray-600 p-1 ml-2"
-        >
-          <MoreVertical size={16} />
-        </button>
+        {!isOverlay && onTaskClick && (
+          <button
+            onPointerDown={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+            }}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              onTaskClick(task);
+            }}
+            className="text-gray-400 hover:text-gray-600 p-1 ml-2"
+          >
+            <MoreVertical size={16} />
+          </button>
+        )}
       </div>
 
       {task.description && (
