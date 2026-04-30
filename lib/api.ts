@@ -148,3 +148,19 @@ export async function updateTask(taskId: number, data: Partial<TaskDTO>): Promis
 
   return response.json();
 }
+
+export async function fetchCurrentUser() {
+  const token = getToken();
+
+  const response = await fetch(`${API_BASE_URL}/auth/me`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error("No se pudo obtener el usuario actual");
+  }
+
+  return response.json();
+}

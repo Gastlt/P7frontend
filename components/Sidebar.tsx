@@ -19,6 +19,7 @@ import { useEffect, useState } from "react";
 import { getUser } from "@/lib/session";
 
 import { clearSession } from "@/lib/session";
+import { fetchCurrentUser } from "@/lib/api";
 
 export default function Sidebar() {
   const [user, setUser] = useState<any>(null);
@@ -26,9 +27,18 @@ export default function Sidebar() {
   const pathname = usePathname();
   const router = useRouter();
 
+    const isAdmin =
+    user?.role === "SUPERADMIN" ||
+    user?.roleName === "SUPERADMIN" ||
+    user?.role?.name === "SUPERADMIN";
+
   useEffect(() => {
     const fetchUser = async () => {
       const userData = await getUser();
+      
+      console.log("getUser() devuelve:", userData);
+
+
       setUser(userData);
     };
 
@@ -87,13 +97,15 @@ export default function Sidebar() {
           {link("/sprints", "Sprints", CalendarRange)}
           {link("/alltasks", "Todas las Tareas", CheckSquare)}
 
-          <div className="pt-6 text-sm text-gray-500">
-            Acceso Rápido
-          </div>
+          {isAdmin && (
+              <>
+                <div className="pt-6 text-sm text-gray-500">
+                  Admin
+                </div>
 
-          {link("/backlog", "Backlog", Clock)}
-          {link("/in-progress", "En Progreso", BarChart3)}
-          {link("/completed", "Completadas", CheckCircle)}
+                {link("/admin/groups", "Administrar Grupos", Folder)}
+              </>
+            )}
 
           <div className="pt-6 text-sm text-gray-500">
             Ajustes
