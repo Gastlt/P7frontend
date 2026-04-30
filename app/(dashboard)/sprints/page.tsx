@@ -21,7 +21,7 @@ import {
   Task,
   TaskGroup,
   Sprint,
-} from "../groups/groupsData";
+} from "../../../lib/groupsData";
 
 type TaskStatus = "pending" | "in_progress" | "completed";
 
