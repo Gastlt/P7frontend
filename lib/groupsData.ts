@@ -1,17 +1,4 @@
-/**
- * Real data fetched from backend API running on localhost:8080
- * Endpoints:
- *  - GET /api/users
- *  - GET /api/taskgroups
- *  - GET /api/group-members
- *  - GET /api/todolists
- *  - GET /api/tasks
- *  - GET /api/task-assignments
- *  - GET /todolist
- */
-
 import { getToken } from "@/lib/session";
-import { get } from "http";
 
 function getAuthHeaders() {
   const headers: HeadersInit = {
@@ -28,7 +15,7 @@ function getAuthHeaders() {
   return headers;
 }
 
-const API_BASE_URL = "http://localhost:8080";
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080/api";
 
 export type User = {
   id: number;
@@ -108,7 +95,7 @@ export type ToDoItem = {
  */
 export async function fetchUsers(): Promise<User[]> {
   try {
-    const response = await fetch(`${API_BASE_URL}/api/users`, {
+    const response = await fetch(`${API_BASE_URL}/users`, {
       method: "GET",
       headers: { "Content-Type": "application/json" },
     });
@@ -125,7 +112,7 @@ export async function fetchUsers(): Promise<User[]> {
  */
 export async function fetchTaskGroups(): Promise<TaskGroup[]> {
   try {
-    const response = await fetch(`${API_BASE_URL}/api/taskgroups`, {
+    const response = await fetch(`${API_BASE_URL}/taskgroups`, {
       method: "GET",
       headers: { "Content-Type": "application/json" },
     });
@@ -147,7 +134,7 @@ export async function fetchTaskGroups(): Promise<TaskGroup[]> {
  */
 export async function fetchGroupMembers(): Promise<GroupMember[]> {
   try {
-    const response = await fetch(`${API_BASE_URL}/api/group-members`, {
+    const response = await fetch(`${API_BASE_URL}/group-members`, {
       method: "GET",
       headers: { "Content-Type": "application/json" },
     });
@@ -165,7 +152,7 @@ export async function fetchGroupMembers(): Promise<GroupMember[]> {
 }
 
 export async function fetchMyGroupMembers(): Promise<GroupMember[]> {
-  const response = await fetch(`${API_BASE_URL}/api/group-members/me`, {
+  const response = await fetch(`${API_BASE_URL}/group-members/me`, {
     method: "GET",
     headers: {
       "Content-Type": "application/json",
@@ -188,7 +175,7 @@ export async function fetchMyGroupMembers(): Promise<GroupMember[]> {
  */
 export async function fetchGroupMembersByGroupId(groupId: number): Promise<GroupMember[]> {
   try {
-    const response = await fetch(`${API_BASE_URL}/api/group-members/group/${groupId}`, {
+    const response = await fetch(`${API_BASE_URL}/group-members/group/${groupId}`, {
       method: "GET",
       headers: { "Content-Type": "application/json" },
     });
@@ -205,7 +192,7 @@ export async function fetchGroupMembersByGroupId(groupId: number): Promise<Group
  */
 export async function fetchTodoLists(): Promise<TodoList[]> {
   try {
-    const response = await fetch(`${API_BASE_URL}/api/todolists`, {
+    const response = await fetch(`${API_BASE_URL}/todolists`, {
       method: "GET",
       headers: { "Content-Type": "application/json" },
     });
@@ -222,7 +209,7 @@ export async function fetchTodoLists(): Promise<TodoList[]> {
  */
 export async function fetchTodoListsByGroupId(groupId: number): Promise<TodoList[]> {
   try {
-    const response = await fetch(`${API_BASE_URL}/api/todolists/group/${groupId}`, {
+    const response = await fetch(`${API_BASE_URL}/todolists/group/${groupId}`, {
       method: "GET",
       headers: { "Content-Type": "application/json" },
     });
@@ -239,7 +226,7 @@ export async function fetchTodoListsByGroupId(groupId: number): Promise<TodoList
  */
 export async function fetchTasks(): Promise<Task[]> {
   try {
-    const response = await fetch(`${API_BASE_URL}/api/tasks`, {
+    const response = await fetch(`${API_BASE_URL}/tasks`, {
       method: "GET",
       headers: getAuthHeaders(),
     });
@@ -263,7 +250,7 @@ export async function fetchTasks(): Promise<Task[]> {
  */
 export async function fetchTaskById(taskId: number): Promise<Task | null> {
   try {
-    const response = await fetch(`${API_BASE_URL}/api/tasks/${taskId}`, {
+    const response = await fetch(`${API_BASE_URL}/tasks/${taskId}`, {
       method: "GET",
       headers: { "Content-Type": "application/json" },
     });
@@ -280,7 +267,7 @@ export async function fetchTaskById(taskId: number): Promise<Task | null> {
  */
 export async function fetchTaskAssignments(): Promise<TaskAssignment[]> {
   try {
-    const response = await fetch(`${API_BASE_URL}/api/task-assignments`, {
+    const response = await fetch(`${API_BASE_URL}/task-assignments`, {
       method: "GET",
     });
       if (!response.ok) {
@@ -301,7 +288,7 @@ export async function fetchTaskAssignments(): Promise<TaskAssignment[]> {
  */
 export async function fetchTaskAssignmentsByTaskId(taskId: number): Promise<TaskAssignment[]> {
   try {
-    const response = await fetch(`${API_BASE_URL}/api/task-assignments/task/${taskId}`, {
+    const response = await fetch(`${API_BASE_URL}/task-assignments/task/${taskId}`, {
       method: "GET",
       headers: { "Content-Type": "application/json" },
     });
@@ -613,7 +600,7 @@ export async function createTask(task: {
     console.log("Creating task with data:", taskData);
     console.log("Token being used:", getToken());
 
-    const response = await fetch(`${API_BASE_URL}/api/tasks`, {
+    const response = await fetch(`${API_BASE_URL}/tasks`, {
       method: "POST",
       headers: getAuthHeaders(),
       body: JSON.stringify(taskData),
@@ -649,7 +636,7 @@ export async function updateTask(
   }>
 ): Promise<Task | null> {
   try {
-    const response = await fetch(`${API_BASE_URL}/api/tasks/${taskId}`, {
+    const response = await fetch(`${API_BASE_URL}/tasks/${taskId}`, {
       method: "PUT",
       headers: getAuthHeaders(),
       body: JSON.stringify(updates),
@@ -668,7 +655,7 @@ export async function updateTask(
 export async function deleteTask(taskId: number): Promise<boolean> {
   try {
     console.log(`Deleting task ${taskId}...`);
-    const response = await fetch(`${API_BASE_URL}/api/tasks/${taskId}`, {
+    const response = await fetch(`${API_BASE_URL}/tasks/${taskId}`, {
       method: "DELETE",
       headers: { "Content-Type": "application/json" },
     });
@@ -703,7 +690,7 @@ export async function createTaskAssignment(
 
     console.log("Creating task assignment with payload:", payload);
 
-    const response = await fetch(`${API_BASE_URL}/api/task-assignments`, {
+    const response = await fetch(`${API_BASE_URL}/task-assignments`, {
       method: "POST",
       headers: getAuthHeaders(),
       body: JSON.stringify(payload),
@@ -735,7 +722,7 @@ export async function createTaskAssignment(
  */
 export async function deleteTaskAssignment(assignmentId: number): Promise<boolean> {
   try {
-    const response = await fetch(`${API_BASE_URL}/api/task-assignments/${assignmentId}`, {
+    const response = await fetch(`${API_BASE_URL}/task-assignments/${assignmentId}`, {
       method: "DELETE",
       headers: { "Content-Type": "application/json" },
     });
@@ -761,7 +748,7 @@ export async function createTaskGroup(group: {
     };
 
     console.log("Creating task group with data:", groupData);
-    const response = await fetch(`${API_BASE_URL}/api/taskgroups`, {
+    const response = await fetch(`${API_BASE_URL}/taskgroups`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(groupData),
@@ -787,7 +774,7 @@ export async function createTaskGroup(group: {
  */
 export async function createGroupMember(groupId: number, userId: number): Promise<GroupMember | null> {
   try {
-    const response = await fetch(`${API_BASE_URL}/api/group-members`, {
+    const response = await fetch(`${API_BASE_URL}/group-members`, {
       method: "POST",
       headers: getAuthHeaders(),
       body: JSON.stringify({
@@ -815,7 +802,7 @@ export async function createGroupMember(groupId: number, userId: number): Promis
 export async function deleteTaskGroup(groupId: number): Promise<boolean> {
   try {
     console.log(`Deleting task group ${groupId}...`);
-    const response = await fetch(`${API_BASE_URL}/api/taskgroups/${groupId}`, {
+    const response = await fetch(`${API_BASE_URL}/taskgroups/${groupId}`, {
       method: "DELETE",
       headers: { "Content-Type": "application/json" },
     });
@@ -850,7 +837,7 @@ export type Sprint = {
 };
 
 export async function fetchSprints(): Promise<Sprint[]> {
-  const response = await fetch(`${API_BASE_URL}/api/sprints`, {
+  const response = await fetch(`${API_BASE_URL}/sprints`, {
     method: "GET",
     headers: {
       "Content-Type": "application/json",

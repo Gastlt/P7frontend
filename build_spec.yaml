@@ -1,0 +1,65 @@
+version: 0.1
+component: build
+timeoutInSeconds: 900
+shell: bash
+
+env:
+  variables:
+    DOCKER_BUILDKIT: "1"
+  exportedVariables:
+    - FRONTEND_IMAGE_URI
+
+steps:
+  - type: Command
+    name: "Validate required variables"
+    command: |
+      set -euo pipefail
+      required_vars=(
+        OCIR_REGION
+        OCIR_NAMESPACE
+        OCIR_USERNAME
+        OCIR_AUTH_TOKEN
+        OCIR_REPOSITORY
+        NEXT_PUBLIC_API_URL
+      )
+
+      for v in "${required_vars[@]}"; do
+        if [[ -z "${!v:-}" ]]; then
+          echo "ERROR: Missing required variable $v"
+          exit 1
+        fi
+      done
+
+  - type: Command
+    name: "Docker login to OCIR"
+    command: |
+      set -euo pipefail
+      echo "${OCIR_AUTH_TOKEN}" | docker login -u "${OCIR_NAMESPACE}/${OCIR_USERNAME}" --password-stdin "${OCIR_REGION}.ocir.io"
+
+  - type: Command
+    name: "Build frontend image"
+    command: |
+      set -euo pipefail
+      IMAGE_TAG="${IMAGE_TAG:-${OCI_BUILD_RUN_ID:-latest}}"
+      FRONTEND_IMAGE_URI="${OCIR_REGION}.ocir.io/${OCIR_NAMESPACE}/${OCIR_REPOSITORY}:${IMAGE_TAG}"
+      export FRONTEND_IMAGE_URI
+
+      echo "Building image: ${FRONTEND_IMAGE_URI}"
+      echo "NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}"
+
+      if [[ -n "${DOCKER_PLATFORM:-}" ]]; then
+        docker build --platform "${DOCKER_PLATFORM}" \
+          --build-arg NEXT_PUBLIC_API_URL="${NEXT_PUBLIC_API_URL}" \
+          -t "${FRONTEND_IMAGE_URI}" .
+      else
+        docker build \
+          --build-arg NEXT_PUBLIC_API_URL="${NEXT_PUBLIC_API_URL}" \
+          -t "${FRONTEND_IMAGE_URI}" .
+      fi
+
+  - type: Command
+    name: "Push frontend image"
+    command: |
+      set -euo pipefail
+      docker push "${FRONTEND_IMAGE_URI}"
+      echo "Pushed image: ${FRONTEND_IMAGE_URI}"
