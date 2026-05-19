@@ -42,6 +42,7 @@ export type CreateTaskRequest = {
   priority: string;
   dueDate?: string | null;
   createdById: number;
+  sprint?: string | null;
 };
 
 export type TaskDTO = {
@@ -55,6 +56,8 @@ export type TaskDTO = {
   assigneeName: string | null;
   groupName: string | null;
   todoListName: string | null;
+  storyPoints?: number | null;
+  sprint?: string | null;
 };
 
 export async function createTask(payload: CreateTaskRequest): Promise<TaskDTO> {
@@ -126,6 +129,37 @@ export async function updateTaskStatus(
   if (!response.ok) {
     const errorText = await response.text();
     throw new Error(errorText || "Error al actualizar el estado de la tarea");
+  }
+
+  return response.json();
+}
+
+export async function updateTask(taskId: number, data: Partial<TaskDTO>): Promise<TaskDTO> {
+  const response = await fetch(`${API_BASE_URL}/tasks/${taskId}`, {
+    method: "PUT",
+    headers: getAuthHeaders(),
+    body: JSON.stringify(data),
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(errorText || "Error al actualizar la tarea");
+  }
+
+  return response.json();
+}
+
+export async function fetchCurrentUser() {
+  const token = getToken();
+
+  const response = await fetch(`${API_BASE_URL}/auth/me`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error("No se pudo obtener el usuario actual");
   }
 
   return response.json();

@@ -5,6 +5,7 @@ export type SessionUser = {
   userId: number;
   name: string;
   email: string;
+  role: string;
 };
 
 export function saveSession(token: string, user: SessionUser) {

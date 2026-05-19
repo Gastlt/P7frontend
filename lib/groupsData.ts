@@ -10,6 +10,24 @@
  *  - GET /todolist
  */
 
+import { getToken } from "@/lib/session";
+import { get } from "http";
+
+function getAuthHeaders() {
+  const headers: HeadersInit = {
+    "Content-Type": "application/json",
+  };
+
+  if (typeof window !== "undefined") {
+    const token = getToken() || localStorage.getItem("accessToken");
+    if (token) {
+      headers["Authorization"] = `Bearer ${token}`;
+    }
+  }
+
+  return headers;
+}
+
 const API_BASE_URL = "http://localhost:8080";
 
 export type User = {
@@ -64,6 +82,8 @@ export type Task = {
   todoList?: TodoList;
   groupName?: string;
   assigneeName?: string;
+  sprintId?: number | null;
+  estimatedHours?: number | null;
 };
 
 export type TaskAssignment = {
@@ -144,6 +164,25 @@ export async function fetchGroupMembers(): Promise<GroupMember[]> {
   }
 }
 
+export async function fetchMyGroupMembers(): Promise<GroupMember[]> {
+  const response = await fetch(`${API_BASE_URL}/api/group-members/me`, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${getToken()}`,
+    },
+  });
+
+  if (!response.ok) {
+    const errorBody = await response.text();
+    throw new Error(
+      `Failed to fetch my group memberships: ${response.status} - ${errorBody}`
+    );
+  }
+
+  return response.json();
+}
+
 /**
  * Fetch group members by group ID
  */
@@ -202,9 +241,16 @@ export async function fetchTasks(): Promise<Task[]> {
   try {
     const response = await fetch(`${API_BASE_URL}/api/tasks`, {
       method: "GET",
-      headers: { "Content-Type": "application/json" },
+      headers: getAuthHeaders(),
     });
-    if (!response.ok) throw new Error(`Failed to fetch tasks: ${response.statusText}`);
+
+    if (!response.ok) {
+      const errorBody = await response.text();
+      throw new Error(
+        `Failed to fetch tasks: ${response.status} ${response.statusText} - ${errorBody}`
+      );
+    }
+
     return await response.json();
   } catch (error) {
     console.error("Error fetching tasks:", error);
@@ -310,8 +356,13 @@ export type GroupTask = {
   description?: string | null;
   priority?: "low" | "medium" | "high";
   assignee: string;
+  startDate?: string | null;
   dueDate: string | null;
   status: GroupTaskStatus;
+  listId?: number;
+  todoListName?: string;
+  estimatedHours?: number | null;
+  
 };
 
 export type Group = {
@@ -335,56 +386,69 @@ export async function fetchAllGroupsData(): Promise<Group[]> {
       await Promise.all([
         fetchTaskGroups(),
         fetchUsers(),
-        fetchGroupMembers(),
+        fetchMyGroupMembers(),
         fetchTodoLists(),
         fetchTasks(),
         fetchTaskAssignments(),
       ]);
 
-    console.log("Fetched data:", { 
+    console.log("Fetched data:", {
       taskGroupsCount: taskGroups.length,
       usersCount: users.length,
-      groupMembersCount: groupMembers.length,
+      myGroupMembersCount: groupMembers.length,
       todoListsCount: todoLists.length,
       tasksCount: tasks.length,
       taskAssignmentsCount: taskAssignments.length,
     });
 
-    return taskGroups.map((g) => {
-      const lists = todoLists.filter((l) => l.groupId === g.id || l.group?.id === g.id);
-      
-      // Mapear tareas a listas - algunos endpoints devuelven listId, otros usan groupName
+    const myGroupIds = groupMembers
+      .map((m) => m.groupId ?? m.group?.id)
+      .filter((id): id is number => id !== undefined && id !== null);
+
+    const myTaskGroups = taskGroups.filter((g) =>
+      myGroupIds.includes(g.id)
+    );
+
+    console.log("My group IDs:", myGroupIds);
+    console.log("My task groups:", myTaskGroups);
+
+    return myTaskGroups.map((g) => {
+      const lists = todoLists.filter(
+        (l) => l.groupId === g.id || l.group?.id === g.id
+      );
+
       const groupTasks = tasks.filter((t) => {
-        // Si la tarea tiene listId directo, verificar si es de este grupo
         if (t.listId) {
           return lists.some((l) => l.id === t.listId);
         }
-        // Si no tiene listId pero tiene groupName, comparar por nombre del grupo
+
         if (t.groupName) {
           return t.groupName === g.name;
         }
+
         return false;
       });
-      
-      // Obtener miembros del grupo desde BD
-      // Maneja tanto el formato con IDs directos como objetos anidados
+
       const dbMembers = groupMembers
         .filter((m) => {
-          // Comparar con groupId directo o con objeto group anidado
           const memberGroupId = m.groupId ?? m.group?.id;
           return memberGroupId === g.id;
         })
         .map((m) => {
-          // Extraer usuario de userid directo o de objeto user anidado
           const userId = m.userId ?? m.user?.id;
           const user = m.user || users.find((x) => x.id === userId);
-          return user ? user.name : `user-${userId}`;
+
+          return user
+            ? user.name
+            : `user-${userId}`;
         });
 
-      // Si no hay miembros en BD, usar todos los usuarios como fallback
-      const members = dbMembers.length > 0 ? dbMembers : users.map(u => u.name);
+      const members = dbMembers;
 
-      console.log(`Group ${g.id} (${g.name}): ${members.length} members -`, members);
+      console.log(
+        `Group ${g.id} (${g.name}): ${members.length} members -`,
+        members
+      );
 
       return {
         id: g.id,
@@ -398,12 +462,14 @@ export async function fetchAllGroupsData(): Promise<Group[]> {
           title: t.title,
           description: t.description,
           priority: t.priority as "low" | "medium" | "high" | undefined,
-          // Usar assigneeName del backend si está disponible, sino buscar en taskAssignments
-          assignee: t.assigneeName ?? 
-                    users.find(
-                      (u) => u.id === (taskAssignments.find((a) => a.taskId === t.id)?.userId ?? -1)
-                    )?.name ?? 
-                    "Unassigned",
+          assignee:
+            t.assigneeName ??
+            users.find(
+              (u) =>
+                u.id ===
+                (taskAssignments.find((a) => a.taskId === t.id)?.userId ?? -1)
+            )?.name ??
+            "Unassigned",
           dueDate: t.dueDate ?? null,
           status: t.status as GroupTaskStatus,
         })),
@@ -411,6 +477,94 @@ export async function fetchAllGroupsData(): Promise<Group[]> {
     });
   } catch (error) {
     console.error("Error fetching all groups data:", error);
+    return [];
+  }
+}
+
+/**
+ * Admin version:
+ * Fetch all data and build the Group[] structure without filtering by current user.
+ * Use this for /admin/groups or any admin page that needs all groups.
+ */
+export async function fetchAllGroupsDataForAdmin(): Promise<Group[]> {
+  try {
+    const [taskGroups, users, groupMembers, todoLists, tasks, taskAssignments] =
+      await Promise.all([
+        fetchTaskGroups(),
+        fetchUsers(),
+        fetchGroupMembers(),
+        fetchTodoLists(),
+        fetchTasks(),
+        fetchTaskAssignments(),
+      ]);
+
+    console.log("Fetched admin groups data:", {
+      taskGroupsCount: taskGroups.length,
+      usersCount: users.length,
+      groupMembersCount: groupMembers.length,
+      todoListsCount: todoLists.length,
+      tasksCount: tasks.length,
+      taskAssignmentsCount: taskAssignments.length,
+    });
+
+    return taskGroups.map((g) => {
+      const lists = todoLists.filter(
+        (l) => l.groupId === g.id || l.group?.id === g.id
+      );
+
+      const groupTasks = tasks.filter((t) => {
+        if (t.listId) {
+          return lists.some((l) => l.id === t.listId);
+        }
+
+        if (t.groupName) {
+          return t.groupName === g.name;
+        }
+
+        return false;
+      });
+
+      const dbMembers = groupMembers
+        .filter((m) => {
+          const memberGroupId = m.groupId ?? m.group?.id;
+          return memberGroupId === g.id;
+        })
+        .map((m) => {
+          const userId = m.userId ?? m.user?.id;
+          const user = m.user || users.find((x) => x.id === userId);
+
+          return user
+            ? user.name
+            : `user-${userId}`;
+        });
+
+      return {
+        id: g.id,
+        title: g.name,
+        description: g.name,
+        progress: groupTasks.filter((t) => t.status === "completed").length,
+        total: groupTasks.length || 0,
+        members: dbMembers,
+        tasks: groupTasks.map((t) => ({
+          id: t.id,
+          title: t.title,
+          description: t.description,
+          priority: t.priority as "low" | "medium" | "high" | undefined,
+          assignee:
+            t.assigneeName ??
+            users.find(
+              (u) =>
+                u.id ===
+                (taskAssignments.find((a) => a.taskId === t.id)?.userId ?? -1)
+            )?.name ??
+            "Unassigned",
+          dueDate: t.dueDate ?? null,
+          status: t.status as GroupTaskStatus,
+        })),
+      } as Group;
+    });
+  } catch (error) {
+    console.error("Error fetching admin groups data:", error);
     return [];
   }
 }
@@ -438,36 +592,42 @@ export async function createTask(task: {
   title: string;
   description?: string;
   priority?: "low" | "medium" | "high";
+  startDate?: string | null;
   dueDate?: string;
   createdById?: number;
+  estimatedHours?: number;
 }): Promise<Task | null> {
   try {
-    // Preparar datos para enviar al backend
     const taskData = {
       listId: task.listId,
       title: task.title,
       description: task.description || "",
       status: "pending",
       priority: task.priority || "medium",
-      // NO enviar dueDate por ahora - causando problemas de conversión
-      createdById: task.createdById || 1, // Usar el usuario proporcionado o fallback
+      startDate: task.startDate ? `${task.startDate}T00:00:00` : null,
+      dueDate: task.dueDate ? `${task.dueDate}T00:00:00` : null,
+      createdById: task.createdById,
+      estimatedHours: task.estimatedHours ?? null,
     };
 
     console.log("Creating task with data:", taskData);
+    console.log("Token being used:", getToken());
+
     const response = await fetch(`${API_BASE_URL}/api/tasks`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: getAuthHeaders(),
       body: JSON.stringify(taskData),
     });
-    
+
     const responseText = await response.text();
+
     console.log("Task creation response status:", response.status);
     console.log("Task creation response:", responseText);
-    
+
     if (!response.ok) {
       throw new Error(`Failed to create task: ${response.status} ${responseText}`);
     }
-    
+
     return responseText ? JSON.parse(responseText) : null;
   } catch (error) {
     console.error("Error creating task:", error);
@@ -491,7 +651,7 @@ export async function updateTask(
   try {
     const response = await fetch(`${API_BASE_URL}/api/tasks/${taskId}`, {
       method: "PUT",
-      headers: { "Content-Type": "application/json" },
+      headers: getAuthHeaders(),
       body: JSON.stringify(updates),
     });
     if (!response.ok) throw new Error(`Failed to update task: ${response.statusText}`);
@@ -531,17 +691,41 @@ export async function deleteTask(taskId: number): Promise<boolean> {
 /**
  * Create a task assignment (assign a task to a user)
  */
-export async function createTaskAssignment(taskId: number, userId: number): Promise<TaskAssignment | null> {
+export async function createTaskAssignment(
+  taskId: number,
+  userId: number
+): Promise<TaskAssignment | null> {
   try {
+    const payload = {
+      task: { id: taskId },
+      user: { id: userId },
+    };
+
+    console.log("Creating task assignment with payload:", payload);
+
     const response = await fetch(`${API_BASE_URL}/api/task-assignments`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ taskId, userId }),
+      headers: getAuthHeaders(),
+      body: JSON.stringify(payload),
     });
-    if (!response.ok) throw new Error(`Failed to create task assignment: ${response.statusText}`);
-    return await response.json();
+
+    const responseText = await response.text();
+
+    console.log("Task assignment response status:", response.status);
+    console.log("Task assignment response body:", responseText);
+
+    if (!response.ok) {
+      throw new Error(
+        `Failed to create task assignment: ${response.status} ${response.statusText} - ${responseText}`
+      );
+    }
+
+    return responseText ? JSON.parse(responseText) : null;
   } catch (error) {
-    console.error("Error creating task assignment:", error);
+    console.error(
+      `Error creating assignment for task ${taskId} and user ${userId}:`,
+      error
+    );
     return null;
   }
 }
@@ -605,7 +789,7 @@ export async function createGroupMember(groupId: number, userId: number): Promis
   try {
     const response = await fetch(`${API_BASE_URL}/api/group-members`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: getAuthHeaders(),
       body: JSON.stringify({
         group: { id: groupId },
         user: { id: userId },
@@ -649,4 +833,37 @@ export async function deleteTaskGroup(groupId: number): Promise<boolean> {
     console.error(`Error deleting task group ${groupId}:`, error);
     return false;
   }
+}
+
+export type Sprint = {
+  id: number;
+  name: string;
+  groupId?: number;
+  group?: {
+    id: number;
+    name: string;
+  };
+  startDate?: string;
+  endDate?: string;
+  status?: "planned" | "active" | "completed";
+  createdAt?: string;
+};
+
+export async function fetchSprints(): Promise<Sprint[]> {
+  const response = await fetch(`${API_BASE_URL}/api/sprints`, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${getToken()}`,
+    },
+  });
+
+  if (!response.ok) {
+    const errorBody = await response.text();
+    throw new Error(
+      `Failed to fetch sprints: ${response.status} - ${errorBody}`
+    );
+  }
+
+  return response.json();
 }

@@ -44,6 +44,7 @@ export default function LoginPage() {
         userId: response.userId,
         name: response.name,
         email: response.email,
+        role: response.role,
       });
 
       router.push('/');

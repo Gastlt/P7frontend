@@ -2,7 +2,7 @@
 
 import { Calendar, ChevronLeft, UserRound, Loader2, Check } from "lucide-react";
 import { FormEvent, useMemo, useState, useEffect } from "react";
-import { GroupTask, Group, fetchAllGroupsData, createTask, updateTask, deleteTask, fetchUsers, fetchTodoListsByGroupId } from "../groupsData";
+import { GroupTask, Group, fetchAllGroupsData, createTask, updateTask, deleteTask, fetchUsers, fetchTodoListsByGroupId } from "@/lib/groupsData";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 

@@ -5,6 +5,7 @@ export type AuthResponse = {
   userId: number;
   name: string;
   email: string;
+  role: string;
 };
 
 export async function registerUser(data: {

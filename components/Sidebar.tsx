@@ -15,12 +15,35 @@ import {
   LogOut,
   CalendarRange
 } from "lucide-react";
+import { useEffect, useState } from "react";
+import { getUser } from "@/lib/session";
 
 import { clearSession } from "@/lib/session";
+import { fetchCurrentUser } from "@/lib/api";
 
 export default function Sidebar() {
+  const [user, setUser] = useState<any>(null);
+
   const pathname = usePathname();
   const router = useRouter();
+
+    const isAdmin =
+    user?.role === "SUPERADMIN" ||
+    user?.roleName === "SUPERADMIN" ||
+    user?.role?.name === "SUPERADMIN";
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      const userData = await getUser();
+      
+      console.log("getUser() devuelve:", userData);
+
+
+      setUser(userData);
+    };
+
+    fetchUser();
+  }, []);
 
   const handleLogout = () => {
     clearSession();
@@ -59,28 +82,30 @@ export default function Sidebar() {
 
           <div>
             <h2 className="font-bold text-l text-black leading-tight">
-              Dashboard de Gestión
+              {user ? `Hola, ${user.name}` : "Cargando..."}
             </h2>
             <p className="text-sm text-gray-600">
-              Super Admin
+              {user?.email || "Usuario"}
             </p>
           </div>
         </div>
 
         <nav className="space-y-2">
           {link("/", "Dashboard", LayoutDashboard)}
-          {link("/userview", "Mis Tareas", CheckSquare)}
-          {link("/groups", "Grupos", Folder)}
+          {link("/tasks", "Mis Tareas", CheckSquare)}
+          {link("/groups", "Mis Grupos", Folder)}
           {link("/sprints", "Sprints", CalendarRange)}
-          {link("/tasks", "Todas las Tareas", CheckSquare)}
+          {link("/alltasks", "Todas las Tareas", CheckSquare)}
 
-          <div className="pt-6 text-sm text-gray-500">
-            Acceso Rápido
-          </div>
+          {isAdmin && (
+              <>
+                <div className="pt-6 text-sm text-gray-500">
+                  Admin
+                </div>
 
-          {link("/backlog", "Backlog", Clock)}
-          {link("/in-progress", "En Progreso", BarChart3)}
-          {link("/completed", "Completadas", CheckCircle)}
+                {link("/admin/groups", "Administrar Grupos", Folder)}
+              </>
+            )}
 
           <div className="pt-6 text-sm text-gray-500">
             Ajustes
