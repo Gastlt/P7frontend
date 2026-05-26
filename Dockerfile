@@ -1,3 +1,6 @@
+# Build args that can be passed from build.sh
+# Usage: docker build --build-arg NEXT_PUBLIC_API_URL=<url> --build-arg NODE_ENV=production .
+
 FROM node:20-alpine AS base
 
 RUN apk add --no-cache libc6-compat
@@ -6,34 +9,39 @@ WORKDIR /app
 FROM base AS deps
 
 COPY package*.json ./
-RUN npm ci
+RUN npm ci --frozen-lockfile
 
 FROM base AS builder
 
 ARG NEXT_PUBLIC_API_URL=http://localhost:8080/api
+ARG NODE_ENV=production
 ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
+ENV NODE_ENV=$NODE_ENV
 
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
-RUN npm run build
+RUN npm run build && \
+    test -d ".next/standalone" || (echo "ERROR: .next/standalone directory not found. Build failed." && exit 1) && \
+    test -d ".next/static" || (echo "ERROR: .next/static directory not found. Build failed." && exit 1)
 
 FROM node:20-alpine AS runner
+
+ARG NEXT_PUBLIC_API_URL=http://localhost:8080/api
 
 WORKDIR /app
 ENV NODE_ENV=production
 ENV PORT=3000
 ENV HOSTNAME=0.0.0.0
-ARG NEXT_PUBLIC_API_URL=http://localhost:8080/api
 ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
 
 RUN addgroup -S nextjs && adduser -S nextjs -G nextjs
 
-COPY --from=builder /app/public ./public
-COPY --from=builder /app/.next/standalone ./
-COPY --from=builder /app/.next/static ./.next/static
+COPY --from=builder --chown=nextjs:nextjs /app/public ./public
+COPY --from=builder --chown=nextjs:nextjs /app/.next/standalone ./
+COPY --from=builder --chown=nextjs:nextjs /app/.next/static ./.next/static
 
-RUN chown -R nextjs:nextjs /app
+RUN test -f "server.js" || (echo "ERROR: server.js not found in build output." && exit 1)
 
 USER nextjs
 
