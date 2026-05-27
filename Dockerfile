@@ -13,8 +13,9 @@ RUN npm ci --frozen-lockfile
 
 FROM base AS builder
 
-ARG NEXT_PUBLIC_API_URL=http://localhost:8080/api
+ARG NEXT_PUBLIC_API_URL
 ARG NODE_ENV=production
+RUN test -n "$NEXT_PUBLIC_API_URL" || (echo "ERROR: NEXT_PUBLIC_API_URL must be provided at build time." && exit 1)
 ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
 ENV NODE_ENV=$NODE_ENV
 
@@ -27,12 +28,13 @@ RUN npm run build && \
 
 FROM node:20-alpine AS runner
 
-ARG NEXT_PUBLIC_API_URL=http://localhost:8080/api
+ARG NEXT_PUBLIC_API_URL
 
 WORKDIR /app
 ENV NODE_ENV=production
 ENV PORT=3000
 ENV HOSTNAME=0.0.0.0
+RUN test -n "$NEXT_PUBLIC_API_URL" || (echo "ERROR: NEXT_PUBLIC_API_URL must be provided at build time." && exit 1)
 ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
 
 RUN addgroup -S nextjs && adduser -S nextjs -G nextjs
