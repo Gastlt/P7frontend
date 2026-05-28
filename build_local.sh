@@ -11,7 +11,7 @@ cd "$script_dir"
 
 container_name="p7frontend"
 image_name="p7frontend:1.1"
-backend_url="${BACKEND_URL:-http://localhost:8080/api}"
+backend_url="${BACKEND_URL:-/api}"
 backend_internal_url="${BACKEND_INTERNAL_URL:-http://host.docker.internal:8080}"
 docker_platform="${DOCKER_PLATFORM:-}"
 docker_memory="${DOCKER_MEMORY:-512m}"
