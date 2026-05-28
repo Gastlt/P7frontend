@@ -1,15 +1,21 @@
 /**
- * Next.js configuration: rewrite /api/* to internal cluster service
- * This enables the frontend to call /api/... from the browser while the
- * server proxies those requests to the internal backend service, avoiding
- * the need for a public backend URL or CORS configuration.
+ * Next.js configuration: rewrite /api/* to the backend service.
+ * The browser talks to /api/... and Next proxies those requests to the
+ * backend host configured in BACKEND_INTERNAL_URL.
  */
+const backendDestination = process.env.BACKEND_INTERNAL_URL || "http://localhost:8080";
+
 module.exports = {
+  output: 'standalone',
   async rewrites() {
     return [
       {
+        source: '/api/auth/:path*',
+        destination: `${backendDestination}/auth/:path*`
+      },
+      {
         source: '/api/:path*',
-        destination: 'http://todolistapp-backend-router.mtdrworkshop.svc.cluster.local/:path*'
+        destination: `${backendDestination}/api/:path*`
       }
     ]
   }

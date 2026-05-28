@@ -12,6 +12,7 @@ cd "$script_dir"
 container_name="p7frontend"
 image_name="p7frontend:1.1"
 backend_url="${BACKEND_URL:-http://localhost:8080/api}"
+backend_internal_url="${BACKEND_INTERNAL_URL:-http://host.docker.internal:8080}"
 docker_platform="${DOCKER_PLATFORM:-}"
 docker_memory="${DOCKER_MEMORY:-512m}"
 docker_cpus="${DOCKER_CPUS:-1}"
@@ -20,6 +21,7 @@ echo "Building P7 Frontend (LOCAL)..."
 echo "   Image: $image_name"
 echo "   Container: $container_name"
 echo "   Backend URL: $backend_url"
+echo "   Backend internal URL: $backend_internal_url"
 
 echo "Cleaning up previous versions..."
 docker stop "$container_name" 2>/dev/null || true
@@ -27,7 +29,11 @@ docker rm -f "$container_name" 2>/dev/null || true
 docker rmi "$image_name" 2>/dev/null || true
 
 echo "Building Docker image..."
-build_args=(--build-arg "NEXT_PUBLIC_API_URL=$backend_url" --build-arg "NODE_ENV=production")
+build_args=(
+	--build-arg "NEXT_PUBLIC_API_URL=$backend_url"
+	--build-arg "BACKEND_INTERNAL_URL=$backend_internal_url"
+	--build-arg "NODE_ENV=production"
+)
 
 if [[ -n "$docker_platform" ]]; then
 	build_args+=(--platform "$docker_platform")

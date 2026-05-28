@@ -12,7 +12,7 @@ cd "$script_dir"
 #               [--tag TAG] [--backend-url URL] [--skip-push]
 # 
 # Environment variables (if args not provided):
-#   OCIR_REGION, OCIR_NAMESPACE, OCIR_REPO, OCIR_TAG, BACKEND_PUBLIC_URL, SKIP_PUSH
+#   OCIR_REGION, OCIR_NAMESPACE, OCIR_REPO, OCIR_TAG, BACKEND_PUBLIC_URL, BACKEND_INTERNAL_URL, SKIP_PUSH
 # ============================================================================
 
 # Defaults
@@ -21,6 +21,7 @@ OCIR_NAMESPACE="${OCIR_NAMESPACE:-}"
 OCIR_REPO="${OCIR_REPO:-equipo52/yv0fi/p7frontend}"
 OCIR_TAG="${OCIR_TAG:-latest}"
 BACKEND_PUBLIC_URL="${BACKEND_PUBLIC_URL:-http://localhost:8080/api}"
+BACKEND_INTERNAL_URL="${BACKEND_INTERNAL_URL:-http://todolistapp-backend-router.mtdrworkshop.svc.cluster.local}"
 SKIP_PUSH="${SKIP_PUSH:-false}"
 DOCKER_PLATFORM="${DOCKER_PLATFORM:-}"
 DOCKER_MEMORY="${DOCKER_MEMORY:-512m}"
@@ -47,6 +48,10 @@ while [[ $# -gt 0 ]]; do
       ;;
     --backend-url)
       BACKEND_PUBLIC_URL="$2"
+      shift 2
+      ;;
+    --backend-internal-url)
+      BACKEND_INTERNAL_URL="$2"
       shift 2
       ;;
     --skip-push)
@@ -77,6 +82,7 @@ echo "=========================================="
 echo "Registry:    $OCIR_REGISTRY"
 echo "Image:       $IMAGE_FULL"
 echo "Backend URL: $BACKEND_PUBLIC_URL"
+echo "Backend internal URL: $BACKEND_INTERNAL_URL"
 echo "Skip Push:   $SKIP_PUSH"
 echo "=========================================="
 
@@ -90,6 +96,7 @@ docker rmi "$IMAGE_FULL" 2>/dev/null || true
 echo "[2/3] Building Docker image..."
 build_args=(
   --build-arg "NEXT_PUBLIC_API_URL=$BACKEND_PUBLIC_URL"
+  --build-arg "BACKEND_INTERNAL_URL=$BACKEND_INTERNAL_URL"
   --build-arg "NODE_ENV=production"
 )
 

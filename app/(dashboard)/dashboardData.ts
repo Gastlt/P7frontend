@@ -1,5 +1,5 @@
 const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
+  "/api";
 
 const TOKEN_KEY = "todo_token";
 
@@ -45,7 +45,7 @@ export type Sprint = {
 };
 
 export async function fetchGroups(): Promise<Group[]> {
-  const response = await fetch(`${API_BASE_URL}/api/taskgroups`, {
+  const response = await fetch(`${API_BASE_URL}/taskgroups`, {
     method: "GET",
     headers: getAuthHeaders(),
   });
@@ -58,7 +58,7 @@ export async function fetchGroups(): Promise<Group[]> {
 }
 
 export async function fetchSprints(): Promise<Sprint[]> {
-  const response = await fetch(`${API_BASE_URL}/api/sprints`, {
+  const response = await fetch(`${API_BASE_URL}/sprints`, {
     method: "GET",
     headers: getAuthHeaders(),
   });
@@ -80,7 +80,7 @@ export async function fetchCompletedTasksByUserSprintGroup(
   if (sprintId) params.append("sprintId", String(sprintId));
 
   const response = await fetch(
-    `${API_BASE_URL}/api/kpis/completed-by-user?${params.toString()}`,
+    `${API_BASE_URL}/kpis/completed-by-user?${params.toString()}`,
     {
       method: "GET",
       headers: getAuthHeaders(),
@@ -105,7 +105,7 @@ export async function fetchEstimatedHoursByUserSprintGroup(
   if (sprintId) params.append("sprintId", String(sprintId));
 
   const response = await fetch(
-    `${API_BASE_URL}/api/kpis/hours-by-sprint`,
+    `${API_BASE_URL}/kpis/hours-by-sprint`,
     {
       method: "GET",
       headers: getAuthHeaders(),
