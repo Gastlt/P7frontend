@@ -77,6 +77,7 @@ export default function SignupPage() {
         userId: response.userId,
         name: response.name,
         email: response.email,
+        role: response.role,
       });
 
       router.push('/');

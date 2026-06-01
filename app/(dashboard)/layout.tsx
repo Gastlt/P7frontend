@@ -1,5 +1,6 @@
 import "../globals.css";
 import Sidebar from "@/components/Sidebar";
+import CryptoPolyfill from "@/components/CryptoPolyfill";
 
 export default function RootLayout({
   children,
@@ -9,6 +10,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
+        <CryptoPolyfill />
         <div className="flex min-h-screen bg-gray-50">
           <Sidebar />
 
