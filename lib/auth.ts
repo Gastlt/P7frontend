@@ -1,4 +1,4 @@
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080/api";
+const AUTH_BASE_URL = "/api/auth";
 
 export type AuthResponse = {
   token: string;
@@ -14,7 +14,7 @@ export async function registerUser(data: {
   phone: string;
   password: string;
 }): Promise<AuthResponse> {
-  const response = await fetch(`${API_BASE_URL}/auth/register`, {
+  const response = await fetch(`${AUTH_BASE_URL}/register`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -34,7 +34,7 @@ export async function loginUser(data: {
   email: string;
   password: string;
 }): Promise<AuthResponse> {
-  const response = await fetch(`${API_BASE_URL}/auth/login`, {
+  const response = await fetch(`${AUTH_BASE_URL}/login`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",

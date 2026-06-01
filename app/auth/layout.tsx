@@ -1,4 +1,5 @@
 import "@/app/globals.css";
+import CryptoPolyfill from "@/components/CryptoPolyfill";
 
 export default function AuthLayout({
   children,
@@ -8,6 +9,7 @@ export default function AuthLayout({
   return (
     <html lang="en">
       <body>
+        <CryptoPolyfill />
         <div className="min-h-screen">
           {children}
         </div>
