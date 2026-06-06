@@ -20,6 +20,7 @@ import {
   TrendingUp,
   Users,
 } from "lucide-react";
+import ProtectedRoute from "@/components/ProtectedRoute";
 
 import {
   fetchCompletedTasksByUserSprintGroup,
@@ -172,7 +173,8 @@ export default function DashboardPage() {
 }, [hoursData]);
 
   return (
-    <main className="min-h-screen bg-slate-50 px-6 py-6">
+    <ProtectedRoute>
+      <main className="min-h-screen bg-slate-50 px-6 py-6">
       <div className="mb-6 flex flex-col gap-4 border-b border-slate-200 pb-6 md:flex-row md:items-center md:justify-between">
         <div>
           <h1 className="text-3xl font-bold text-slate-900">Dashboard</h1>
@@ -464,6 +466,7 @@ export default function DashboardPage() {
         </div>
       </section>
     </main>
+    </ProtectedRoute>
   );
 }
 
