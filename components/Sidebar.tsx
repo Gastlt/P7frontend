@@ -74,7 +74,7 @@ export default function Sidebar() {
   };
 
   return (
-    <aside className="w-64 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-700 p-4 flex flex-col justify-between">
+    <aside className="fixed inset-y-0 left-0 z-30 h-dvh min-h-dvh max-h-dvh w-64 min-w-64 max-w-64 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-700 p-4 flex flex-col justify-between overflow-y-auto">
       {/* TOP */}
       <div>
         <div className="mb-8 flex items-center gap-3">
