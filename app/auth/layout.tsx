@@ -7,13 +7,9 @@ export default function AuthLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
-      <body>
-        <CryptoPolyfill />
-        <div className="min-h-screen">
-          {children}
-        </div>
-      </body>
-    </html>
+    <div className="min-h-screen">
+      <CryptoPolyfill />
+      {children}
+    </div>
   );
 }

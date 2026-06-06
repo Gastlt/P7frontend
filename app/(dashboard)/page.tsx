@@ -174,18 +174,18 @@ export default function DashboardPage() {
 
   return (
     <ProtectedRoute>
-      <main className="min-h-screen bg-slate-50 px-6 py-6">
-      <div className="mb-6 flex flex-col gap-4 border-b border-slate-200 pb-6 md:flex-row md:items-center md:justify-between">
+      <main className="min-h-screen bg-slate-50 dark:bg-slate-950 px-6 py-6">
+      <div className="mb-6 flex flex-col gap-4 border-b border-slate-200 dark:border-slate-700 pb-6 md:flex-row md:items-center md:justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-slate-900">Dashboard</h1>
-          <p className="text-sm text-slate-500">Métricas y KPIs del equipo</p>
+          <h1 className="text-3xl font-bold text-slate-900 dark:text-white">Dashboard</h1>
+          <p className="text-sm text-slate-500 dark:text-slate-400">Métricas y KPIs del equipo</p>
         </div>
 
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
           <select
     value={selectedGroupId ?? ""}
     onChange={(e) => setSelectedGroupId(Number(e.target.value))}
-    className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-sm outline-none focus:border-red-400"
+    className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 py-2 text-sm font-medium text-slate-700 dark:text-white shadow-sm outline-none focus:border-red-400 dark:focus:border-red-500"
   >
     {groups.map((group) => (
       <option key={group.id} value={group.id}>
@@ -200,7 +200,7 @@ export default function DashboardPage() {
               const value = e.target.value;
               setSelectedSprintId(value ? Number(value) : undefined);
             }}
-            className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-sm outline-none focus:border-red-400"
+            className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 py-2 text-sm font-medium text-slate-700 dark:text-white shadow-sm outline-none focus:border-red-400 dark:focus:border-red-500"
           >
             <option value="">Todos los sprints</option>
 
@@ -219,7 +219,7 @@ export default function DashboardPage() {
       </div>
 
       <section className="mb-6">
-        <h2 className="mb-4 text-lg font-bold text-slate-900">
+        <h2 className="mb-4 text-lg font-bold text-slate-900 dark:text-white">
           {selectedGroup ? selectedGroup.name : "Grupo"} · KPIs de Desarrollo
         </h2>
 
@@ -259,13 +259,13 @@ export default function DashboardPage() {
       </section>
 
       <section className="mb-6">
-  <h2 className="mb-4 text-lg font-bold text-slate-900">
+  <h2 className="mb-4 text-lg font-bold text-slate-900 dark:text-white">
     Métricas por Sprint
   </h2>
 
   <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
-    <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-      <h3 className="mb-4 text-sm font-bold text-slate-800">
+    <div className="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-5 shadow-sm">
+      <h3 className="mb-4 text-sm font-bold text-slate-800 dark:text-slate-200">
         Tareas completadas por usuario y sprint
       </h3>
 
@@ -337,8 +337,8 @@ export default function DashboardPage() {
       )}
     </div>
 
-    <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-      <h3 className="mb-4 text-sm font-bold text-slate-800">
+    <div className="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-5 shadow-sm">
+      <h3 className="mb-4 text-sm font-bold text-slate-800 dark:text-slate-200">
         Horas estimadas por usuario y sprint
       </h3>
 
@@ -412,16 +412,16 @@ export default function DashboardPage() {
   </div>
 </section>
 
-      <section className="rounded-2xl border border-slate-200 bg-white shadow-sm">
-        <div className="border-b border-slate-100 px-5 py-4">
-          <h3 className="text-sm font-bold text-slate-800">
+      <section className="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-sm">
+        <div className="border-b border-slate-100 dark:border-slate-700 px-5 py-4">
+          <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200">
             Detalle por usuario
           </h3>
         </div>
 
         <div className="overflow-x-auto">
           <table className="w-full min-w-[720px] text-left text-sm">
-            <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
+            <thead className="bg-slate-50 dark:bg-slate-900 text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">
               <tr>
                 <th className="px-5 py-3">Grupo</th>
                 <th className="px-5 py-3">Sprint</th>
@@ -430,22 +430,22 @@ export default function DashboardPage() {
               </tr>
             </thead>
 
-            <tbody className="divide-y divide-slate-100">
+            <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
               {kpiData.map((item) => (
                 <tr
                   key={`${item.groupId}-${item.sprintId}-${item.userId}`}
-                  className="hover:bg-slate-50"
+                  className="hover:bg-slate-50 dark:hover:bg-slate-700"
                 >
-                  <td className="px-5 py-4 font-medium text-slate-700">
+                  <td className="px-5 py-4 font-medium text-slate-700 dark:text-slate-300">
                     {item.groupName}
                   </td>
-                  <td className="px-5 py-4 text-slate-600">
+                  <td className="px-5 py-4 text-slate-600 dark:text-slate-400">
                     {item.sprintName}
                   </td>
-                  <td className="px-5 py-4 text-slate-600">
+                  <td className="px-5 py-4 text-slate-600 dark:text-slate-400">
                     {item.userName}
                   </td>
-                  <td className="px-5 py-4 font-bold text-slate-900">
+                  <td className="px-5 py-4 font-bold text-slate-900 dark:text-white">
                     {item.completedTasks}
                   </td>
                 </tr>
@@ -455,7 +455,7 @@ export default function DashboardPage() {
                 <tr>
                   <td
                     colSpan={4}
-                    className="px-5 py-8 text-center text-sm text-slate-500"
+                    className="px-5 py-8 text-center text-sm text-slate-500 dark:text-slate-400"
                   >
                     No hay información disponible.
                   </td>
@@ -484,9 +484,11 @@ function KpiCard({
   trend: "up" | "down" | "neutral";
 }) {
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
+    <div className="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
       <div className="mb-6 flex items-start justify-between">
-        <div className="rounded-xl bg-red-50 p-3 text-red-500">{icon}</div>
+        <div className="rounded-xl bg-red-50 dark:bg-red-950 p-3 text-red-500">
+          {icon}
+        </div>
 
         {trend === "up" && (
           <TrendingUp size={16} className="text-emerald-500" />
@@ -497,17 +499,23 @@ function KpiCard({
         )}
 
         {trend === "neutral" && (
-          <Activity size={16} className="text-slate-400" />
+          <Activity size={16} className="text-slate-400 dark:text-slate-600" />
         )}
       </div>
 
-      <p className="mb-2 text-sm font-medium text-slate-500">{title}</p>
+      <p className="mb-2 text-sm font-medium text-slate-500 dark:text-slate-400">
+        {title}
+      </p>
 
       <div className="flex items-end gap-2">
-        <span className="text-3xl font-black text-slate-900">{value}</span>
+        <span className="text-3xl font-black text-slate-900 dark:text-white">
+          {value}
+        </span>
       </div>
 
-      <p className="mt-3 text-xs font-medium text-slate-500">{subtitle}</p>
+      <p className="mt-3 text-xs font-medium text-slate-500 dark:text-slate-400">
+        {subtitle}
+      </p>
     </div>
   );
 }

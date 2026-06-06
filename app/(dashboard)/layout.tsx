@@ -8,17 +8,13 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
-      <body>
-        <CryptoPolyfill />
-        <div className="flex min-h-screen bg-gray-50">
-          <Sidebar />
+    <div className="flex min-h-screen bg-slate-50 dark:bg-slate-950">
+      <Sidebar />
 
-          <main className="flex-1 p-8">
-            {children}
-          </main>
-        </div>
-      </body>
-    </html>
+      <main className="flex-1 p-8">
+        <CryptoPolyfill />
+        {children}
+      </main>
+    </div>
   );
 }
