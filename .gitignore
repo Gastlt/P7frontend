@@ -39,3 +39,9 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# JMeter local binaries and generated output
+apache-jmeter-*/
+jmeter.log
+jmeter-results/
+jmeter-reports/
