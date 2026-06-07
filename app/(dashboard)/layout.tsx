@@ -1,6 +1,7 @@
 import "../globals.css";
 import Sidebar from "@/components/Sidebar";
 import CryptoPolyfill from "@/components/CryptoPolyfill";
+import FloatingChatBot from "@/components/FloatingChatBot";
 
 export default function RootLayout({
   children,
@@ -8,17 +9,15 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
-      <body>
-        <CryptoPolyfill />
-        <div className="flex min-h-screen bg-gray-50">
-          <Sidebar />
+    <div className="min-h-dvh bg-slate-50 dark:bg-slate-950">
+      <Sidebar />
 
-          <main className="flex-1 p-8">
-            {children}
-          </main>
-        </div>
-      </body>
-    </html>
+      <main className="ml-64 min-h-dvh p-8">
+        <CryptoPolyfill />
+        {children}
+      </main>
+
+      <FloatingChatBot />
+    </div>
   );
 }

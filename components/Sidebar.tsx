@@ -17,12 +17,14 @@ import {
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { getUser } from "@/lib/session";
+import SettingsModal from "@/components/SettingsModal";
 
 import { clearSession } from "@/lib/session";
 import { fetchCurrentUser } from "@/lib/api";
 
 export default function Sidebar() {
   const [user, setUser] = useState<any>(null);
+  const [settingsOpen, setSettingsOpen] = useState(false);
 
   const pathname = usePathname();
   const router = useRouter();
@@ -57,14 +59,14 @@ export default function Sidebar() {
       <Link
         href={href}
         className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-colors
-        ${active 
-          ? "bg-red-500 text-white" 
-          : "hover:bg-gray-100 text-gray-700"
+        ${active
+          ? "bg-red-500 text-white"
+          : "hover:bg-slate-100 dark:hover:bg-slate-800 text-gray-700 dark:text-gray-200"
         }`}
       >
         <Icon
           size={18}
-          className={active ? "text-white" : "text-gray-500"}
+          className={active ? "text-white" : "text-gray-500 dark:text-gray-400"}
         />
         {label}
       </Link>
@@ -72,7 +74,7 @@ export default function Sidebar() {
   };
 
   return (
-    <aside className="w-64 bg-white border-r p-4 flex flex-col justify-between">
+    <aside className="fixed inset-y-0 left-0 z-30 h-dvh min-h-dvh max-h-dvh w-64 min-w-64 max-w-64 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-700 p-4 flex flex-col justify-between overflow-y-auto">
       {/* TOP */}
       <div>
         <div className="mb-8 flex items-center gap-3">
@@ -81,10 +83,10 @@ export default function Sidebar() {
           </div>
 
           <div>
-            <h2 className="font-bold text-l text-black leading-tight">
+            <h2 className="font-bold text-l text-black dark:text-white leading-tight">
               {user ? `Hola, ${user.name}` : "Cargando..."}
             </h2>
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-gray-600 dark:text-gray-400">
               {user?.email || "Usuario"}
             </p>
           </div>
@@ -99,7 +101,7 @@ export default function Sidebar() {
 
           {isAdmin && (
               <>
-                <div className="pt-6 text-sm text-gray-500">
+                <div className="pt-6 text-sm text-gray-500 dark:text-gray-400">
                   Admin
                 </div>
 
@@ -107,24 +109,32 @@ export default function Sidebar() {
               </>
             )}
 
-          <div className="pt-6 text-sm text-gray-500">
+          <div className="pt-6 text-sm text-gray-500 dark:text-gray-400">
             Ajustes
           </div>
 
-          {link("/settings", "Configuración", Settings)}
+          <button
+            onClick={() => setSettingsOpen(true)}
+            className="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-gray-700 dark:text-gray-200 transition-colors"
+          >
+            <Settings size={18} className="text-gray-500 dark:text-gray-400" />
+            Configuración
+          </button>
         </nav>
       </div>
 
       {/* LOGOUT BUTTON */}
-      <div className="pt-6 border-t">
+      <div className="pt-6 border-t border-slate-200 dark:border-slate-700">
         <button
           onClick={handleLogout}
-          className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-red-600 hover:bg-red-50 transition-colors"
+          className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950 transition-colors"
         >
           <LogOut size={18} />
           Cerrar sesión
         </button>
       </div>
+
+      <SettingsModal isOpen={settingsOpen} onClose={() => setSettingsOpen(false)} />
     </aside>
   );
 }

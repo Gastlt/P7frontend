@@ -48,7 +48,10 @@ run_args=(--name "$container_name" \
 	-p 3000:3000 \
 	--network bridge)
 
-docker run "${run_args[@]}" -d "$image_name"
+docker run \
+  --add-host=host.docker.internal:host-gateway \
+  "${run_args[@]}" \
+  -d "$image_name"
 
 echo "Frontend started successfully!"
 echo "   Access at: http://localhost:3000"
