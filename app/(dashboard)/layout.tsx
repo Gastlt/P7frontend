@@ -1,6 +1,7 @@
 import "../globals.css";
 import Sidebar from "@/components/Sidebar";
 import CryptoPolyfill from "@/components/CryptoPolyfill";
+import FloatingChatBot from "@/components/FloatingChatBot";
 
 export default function RootLayout({
   children,
@@ -15,6 +16,8 @@ export default function RootLayout({
         <CryptoPolyfill />
         {children}
       </main>
+
+      <FloatingChatBot />
     </div>
   );
 }

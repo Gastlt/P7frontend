@@ -164,3 +164,43 @@ export async function fetchCurrentUser() {
 
   return response.json();
 }
+
+type AiChatResponse = {
+  answer?: string;
+  error?: string;
+  message?: string;
+};
+
+export async function sendAiChatMessage(message: string): Promise<string> {
+  const response = await fetch(`${API_BASE_URL}/ai/chat`, {
+    method: "POST",
+    headers: getAuthHeaders(),
+    body: JSON.stringify({ message }),
+  });
+
+  const rawBody = await response.text();
+  let data: AiChatResponse = {};
+
+  if (rawBody) {
+    try {
+      data = JSON.parse(rawBody) as AiChatResponse;
+    } catch {
+      if (!response.ok) {
+        throw new Error(rawBody);
+      }
+    }
+  }
+
+  if (!response.ok) {
+    throw new Error(
+      data.message || data.error || "No se pudo contactar al asistente."
+    );
+  }
+
+  const answer = data.answer?.trim();
+  if (!answer) {
+    throw new Error("El asistente respondió sin contenido.");
+  }
+
+  return answer;
+}
