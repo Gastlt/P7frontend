@@ -32,6 +32,7 @@ import {
   type Group,
   type Sprint,
 } from "./dashboardData";
+import { useTheme } from "@/lib/theme-context";
 
 const CHART_COLORS = [
   "#ef4444", // red
@@ -51,6 +52,7 @@ function getUserColor(index: number) {
 }
 
 export default function DashboardPage() {
+  const { theme } = useTheme();
   const [groups, setGroups] = useState<Group[]>([]);
   const [selectedGroupId, setSelectedGroupId] = useState<number | undefined>();
   const [kpiData, setKpiData] = useState<CompletedTasksKpi[]>([]);
@@ -172,6 +174,17 @@ export default function DashboardPage() {
   return Array.from(new Set(hoursData.map((item) => item.userName)));
 }, [hoursData]);
 
+  const isDark = theme === "dark";
+  const chartGridColor = isDark ? "#334155" : "#e2e8f0";
+  const chartAxisColor = isDark ? "#64748b" : "#94a3b8";
+  const chartTextColor = isDark ? "#cbd5e1" : "#334155";
+  const chartTooltipBg = isDark ? "#1e293b" : "#ffffff";
+  const chartTooltipBorder = isDark ? "#334155" : "#e2e8f0";
+  const chartTooltipLabel = isDark ? "#f8fafc" : "#0f172a";
+  const chartTooltipShadow = isDark
+    ? "0 18px 35px rgba(2, 6, 23, 0.35)"
+    : "0 10px 25px rgba(15, 23, 42, 0.08)";
+
   return (
     <ProtectedRoute>
       <main className="min-h-screen bg-slate-50 dark:bg-slate-950 px-6 py-6">
@@ -270,50 +283,50 @@ export default function DashboardPage() {
       </h3>
 
       {loading ? (
-        <div className="flex h-72 items-center justify-center text-sm text-slate-500">
+        <div className="flex h-72 items-center justify-center text-sm text-slate-500 dark:text-slate-400">
           Cargando métricas...
         </div>
       ) : chartData.length === 0 ? (
-        <div className="flex h-72 items-center justify-center text-sm text-slate-500">
+        <div className="flex h-72 items-center justify-center text-sm text-slate-500 dark:text-slate-400">
           No hay tareas completadas para este grupo.
         </div>
       ) : (
         <div className="h-80">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={chartData}>
-              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
+              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={chartGridColor} />
 
               <XAxis
                 dataKey="sprint"
-                tick={{ fontSize: 12, fill: "#334155", fontWeight: 500 }}
-                axisLine={{ stroke: "#94a3b8" }}
-                tickLine={{ stroke: "#94a3b8" }}
+                tick={{ fontSize: 12, fill: chartTextColor, fontWeight: 500 }}
+                axisLine={{ stroke: chartAxisColor }}
+                tickLine={{ stroke: chartAxisColor }}
               />
 
               <YAxis
                 allowDecimals={false}
-                tick={{ fontSize: 12, fill: "#334155", fontWeight: 500 }}
-                axisLine={{ stroke: "#94a3b8" }}
-                tickLine={{ stroke: "#94a3b8" }}
+                tick={{ fontSize: 12, fill: chartTextColor, fontWeight: 500 }}
+                axisLine={{ stroke: chartAxisColor }}
+                tickLine={{ stroke: chartAxisColor }}
               />
 
               <Tooltip
                 contentStyle={{
-                  backgroundColor: "#ffffff",
-                  border: "1px solid #e2e8f0",
+                  backgroundColor: chartTooltipBg,
+                  border: `1px solid ${chartTooltipBorder}`,
                   borderRadius: "12px",
-                  color: "#0f172a",
-                  boxShadow: "0 10px 25px rgba(15, 23, 42, 0.08)",
+                  color: chartTooltipLabel,
+                  boxShadow: chartTooltipShadow,
                 }}
                 labelStyle={{
-                  color: "#0f172a",
+                  color: chartTooltipLabel,
                   fontWeight: 700,
                 }}
               />
 
               <Legend
                 formatter={(value) => (
-                  <span style={{ color: "#334155", fontWeight: 500 }}>
+                  <span style={{ color: chartTextColor, fontWeight: 500 }}>
                     {value}
                   </span>
                 )}
@@ -343,50 +356,50 @@ export default function DashboardPage() {
       </h3>
 
       {loading ? (
-        <div className="flex h-72 items-center justify-center text-sm text-slate-500">
+        <div className="flex h-72 items-center justify-center text-sm text-slate-500 dark:text-slate-400">
           Cargando horas...
         </div>
       ) : hoursChartData.length === 0 ? (
-        <div className="flex h-72 items-center justify-center text-sm text-slate-500">
+        <div className="flex h-72 items-center justify-center text-sm text-slate-500 dark:text-slate-400">
           No hay horas estimadas para este grupo.
         </div>
       ) : (
         <div className="h-80">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={hoursChartData}>
-              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
+              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={chartGridColor} />
 
               <XAxis
                 dataKey="sprint"
-                tick={{ fontSize: 12, fill: "#334155", fontWeight: 500 }}
-                axisLine={{ stroke: "#94a3b8" }}
-                tickLine={{ stroke: "#94a3b8" }}
+                tick={{ fontSize: 12, fill: chartTextColor, fontWeight: 500 }}
+                axisLine={{ stroke: chartAxisColor }}
+                tickLine={{ stroke: chartAxisColor }}
               />
 
               <YAxis
-                tick={{ fontSize: 12, fill: "#334155", fontWeight: 500 }}
-                axisLine={{ stroke: "#94a3b8" }}
-                tickLine={{ stroke: "#94a3b8" }}
+                tick={{ fontSize: 12, fill: chartTextColor, fontWeight: 500 }}
+                axisLine={{ stroke: chartAxisColor }}
+                tickLine={{ stroke: chartAxisColor }}
               />
 
               <Tooltip
                 formatter={(value) => [`${value} h`, "Horas estimadas"]}
                 contentStyle={{
-                  backgroundColor: "#ffffff",
-                  border: "1px solid #e2e8f0",
+                  backgroundColor: chartTooltipBg,
+                  border: `1px solid ${chartTooltipBorder}`,
                   borderRadius: "12px",
-                  color: "#0f172a",
-                  boxShadow: "0 10px 25px rgba(15, 23, 42, 0.08)",
+                  color: chartTooltipLabel,
+                  boxShadow: chartTooltipShadow,
                 }}
                 labelStyle={{
-                  color: "#0f172a",
+                  color: chartTooltipLabel,
                   fontWeight: 700,
                 }}
               />
 
               <Legend
                 formatter={(value) => (
-                  <span style={{ color: "#334155", fontWeight: 500 }}>
+                  <span style={{ color: chartTextColor, fontWeight: 500 }}>
                     {value}
                   </span>
                 )}
@@ -421,7 +434,7 @@ export default function DashboardPage() {
 
         <div className="overflow-x-auto">
           <table className="w-full min-w-[720px] text-left text-sm">
-            <thead className="bg-slate-50 dark:bg-slate-900 text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">
+            <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-500 dark:bg-slate-900 dark:text-slate-300">
               <tr>
                 <th className="px-5 py-3">Grupo</th>
                 <th className="px-5 py-3">Sprint</th>
@@ -434,15 +447,15 @@ export default function DashboardPage() {
               {kpiData.map((item) => (
                 <tr
                   key={`${item.groupId}-${item.sprintId}-${item.userId}`}
-                  className="hover:bg-slate-50 dark:hover:bg-slate-700"
+                  className="hover:bg-slate-50 dark:hover:bg-slate-700/70"
                 >
-                  <td className="px-5 py-4 font-medium text-slate-700 dark:text-slate-300">
+                  <td className="px-5 py-4 font-medium text-slate-700 dark:text-slate-100">
                     {item.groupName}
                   </td>
-                  <td className="px-5 py-4 text-slate-600 dark:text-slate-400">
+                  <td className="px-5 py-4 text-slate-600 dark:text-slate-200">
                     {item.sprintName}
                   </td>
-                  <td className="px-5 py-4 text-slate-600 dark:text-slate-400">
+                  <td className="px-5 py-4 text-slate-600 dark:text-slate-200">
                     {item.userName}
                   </td>
                   <td className="px-5 py-4 font-bold text-slate-900 dark:text-white">
