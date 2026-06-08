@@ -16,7 +16,7 @@ import {
   Sparkles,
   X,
 } from "lucide-react";
-import { sendAiChatMessage } from "@/lib/api";
+import { sendPower7AssistantMessage } from "@/lib/aiTaskEstimator";
 import styles from "./FloatingChatBot.module.css";
 
 type ChatMessage = {
@@ -36,6 +36,7 @@ const QUICK_PROMPTS = [
   "¿Qué tareas vencidas tengo?",
   "¿Cómo va el sprint actual?",
   "Resume mis tareas pendientes",
+  "Estima horas para una tarea de 3 puntos",
 ];
 
 function createId() {
@@ -295,7 +296,7 @@ export default function FloatingChatBot() {
     setIsSending(true);
 
     try {
-      const answer = await sendAiChatMessage(message);
+      const answer = await sendPower7AssistantMessage(message);
 
       setMessages((current) =>
         current.map((item) =>
