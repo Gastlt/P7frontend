@@ -37,21 +37,21 @@ const columns: Array<{
     title: "Backlog",
     subtitle: "Por iniciar",
     icon: Circle,
-    className: "bg-gray-100 text-gray-700",
+    className: "bg-slate-100 text-slate-700 dark:bg-slate-700 dark:text-slate-300",
   },
   {
     id: "in_progress",
     title: "In Progress",
     subtitle: "En ejecución",
     icon: Clock3,
-    className: "bg-blue-100 text-blue-700",
+    className: "bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-300",
   },
   {
     id: "completed",
     title: "Done",
     subtitle: "Finalizadas",
     icon: CheckCircle2,
-    className: "bg-green-100 text-green-700",
+    className: "bg-green-100 text-green-700 dark:bg-green-950 dark:text-green-300",
   },
 ];
 
@@ -225,7 +225,7 @@ export default function SprintsPage() {
   if (loading) {
     return (
       <ProtectedRoute>
-        <div className="flex min-h-[60vh] items-center justify-center text-gray-600">
+        <div className="flex min-h-[60vh] items-center justify-center text-slate-600 dark:text-slate-400">
           <Loader2 size={18} className="mr-2 animate-spin" />
           Cargando sprints...
         </div>
@@ -235,11 +235,11 @@ export default function SprintsPage() {
 
   return (
     <ProtectedRoute>
-      <div className="space-y-6 text-gray-900">
-        <div className="flex flex-wrap items-start justify-between gap-4 border-b border-gray-200 pb-6">
+      <div className="space-y-6 text-slate-900 dark:text-slate-100">
+        <div className="flex flex-wrap items-start justify-between gap-4 border-b border-slate-200 pb-6 dark:border-slate-700">
           <div>
-            <h1 className="text-2xl font-semibold text-black">Sprints</h1>
-            <p className="mt-1 text-gray-600">
+            <h1 className="text-2xl font-semibold text-slate-900 dark:text-white">Sprints</h1>
+            <p className="mt-1 text-slate-600 dark:text-slate-400">
               Visualiza los ciclos disponibles y sus tareas organizadas por
               estado.
             </p>
@@ -261,12 +261,12 @@ export default function SprintsPage() {
         )}
 
         <div className="grid gap-4 lg:grid-cols-[280px_1fr]">
-          <aside className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
+          <aside className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-800">
             <div className="mb-4">
-              <h2 className="text-sm font-semibold text-gray-900">
+              <h2 className="text-sm font-semibold text-slate-900 dark:text-white">
                 Sprints disponibles
               </h2>
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-slate-500 dark:text-slate-400">
                 {groups.length} grupos asignados
               </p>
             </div>
@@ -278,7 +278,7 @@ export default function SprintsPage() {
                 setSelectedGroupId(value === "all" ? "all" : Number(value));
                 setSelectedSprintId(null);
               }}
-              className="mb-4 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700"
+              className="mb-4 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
             >
               <option value="all">Todos los grupos</option>
 
@@ -290,7 +290,7 @@ export default function SprintsPage() {
             </select>
 
             {filteredSprints.length === 0 ? (
-              <div className="rounded-lg border border-dashed border-gray-300 p-4 text-sm text-gray-500">
+              <div className="rounded-lg border border-dashed border-slate-300 p-4 text-sm text-slate-500 dark:border-slate-600 dark:text-slate-400">
                 No hay sprints disponibles para tus grupos.
               </div>
             ) : (
@@ -304,19 +304,19 @@ export default function SprintsPage() {
                       onClick={() => setSelectedSprintId(sprint.id)}
                       className={`w-full rounded-lg border px-3 py-3 text-left transition ${
                         active
-                          ? "border-red-500 bg-red-50"
-                          : "border-gray-200 bg-white hover:border-red-200 hover:bg-gray-50"
+                          ? "border-red-500 bg-red-50 dark:bg-red-950/40"
+                          : "border-slate-200 bg-white hover:border-red-200 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:hover:border-red-900 dark:hover:bg-slate-700"
                       }`}
                     >
-                      <span className="block text-sm font-semibold text-gray-900">
+                      <span className="block text-sm font-semibold text-slate-900 dark:text-white">
                         {sprint.name}
                       </span>
 
-                      <span className="mt-1 block text-xs text-gray-500">
+                      <span className="mt-1 block text-xs text-slate-500 dark:text-slate-400">
                         {sprint.groupName}
                       </span>
 
-                      <span className="mt-2 block text-xs text-gray-400">
+                      <span className="mt-2 block text-xs text-slate-400 dark:text-slate-500">
                         {formatDate(sprint.startDate)} -{" "}
                         {formatDate(sprint.endDate)}
                       </span>
@@ -332,37 +332,37 @@ export default function SprintsPage() {
           <section className="space-y-5">
             {selectedSprint ? (
               <>
-                <div className="rounded-lg border border-gray-200 bg-white p-5 shadow-sm">
+                <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-700 dark:bg-slate-800">
                   <div className="flex flex-wrap items-center justify-between gap-4">
                     <div>
-                      <div className="inline-flex items-center gap-2 rounded-lg bg-gray-100 px-3 py-1 text-sm text-gray-700">
+                      <div className="inline-flex items-center gap-2 rounded-lg bg-slate-100 px-3 py-1 text-sm text-slate-700 dark:bg-slate-700 dark:text-slate-300">
                         <CalendarDays size={15} />
                         {selectedSprint.groupName}
                       </div>
 
-                      <h2 className="mt-3 text-xl font-semibold text-gray-900">
+                      <h2 className="mt-3 text-xl font-semibold text-slate-900 dark:text-white">
                         {selectedSprint.name}
                       </h2>
 
-                      <p className="mt-1 text-sm text-gray-500">
+                      <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
                         {formatDate(selectedSprint.startDate)} -{" "}
                         {formatDate(selectedSprint.endDate)}
                       </p>
 
-                      <p className="mt-1 text-sm text-gray-500">
+                      <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
                         {selectedTasks.length} tareas asociadas a este sprint
                       </p>
                     </div>
 
                     <div className="min-w-48">
-                      <div className="mb-2 flex justify-between text-sm text-gray-600">
+                      <div className="mb-2 flex justify-between text-sm text-slate-600 dark:text-slate-400">
                         <span>Progreso</span>
                         <span>
                           {taskCounts.completed} de {selectedTasks.length}
                         </span>
                       </div>
 
-                      <div className="h-3 overflow-hidden rounded-full bg-gray-200">
+                      <div className="h-3 overflow-hidden rounded-full bg-slate-200 dark:bg-slate-700">
                         <div
                           className="h-full rounded-full bg-red-600 transition-all"
                           style={{ width: `${progress}%` }}
@@ -373,11 +373,11 @@ export default function SprintsPage() {
                 </div>
 
                 {selectedTasks.length === 0 ? (
-                  <div className="rounded-lg border border-dashed border-gray-300 bg-white p-10 text-center">
-                    <h3 className="text-base font-semibold text-gray-900">
+                  <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-10 text-center dark:border-slate-600 dark:bg-slate-800">
+                    <h3 className="text-base font-semibold text-slate-900 dark:text-white">
                       No hay tareas en este sprint
                     </h3>
-                    <p className="mt-2 text-sm text-gray-500">
+                    <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
                       Cuando se asignen tareas a este sprint aparecerán aquí.
                     </p>
                   </div>
@@ -392,14 +392,14 @@ export default function SprintsPage() {
                       return (
                         <div
                           key={column.id}
-                          className="rounded-lg border border-gray-200 bg-white shadow-sm"
+                          className="rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-800"
                         >
-                          <div className="flex items-center justify-between border-b border-gray-100 p-4">
+                          <div className="flex items-center justify-between border-b border-slate-100 p-4 dark:border-slate-700">
                             <div>
-                              <h3 className="font-semibold text-gray-900">
+                              <h3 className="font-semibold text-slate-900 dark:text-white">
                                 {column.title}
                               </h3>
-                              <p className="text-sm text-gray-500">
+                              <p className="text-sm text-slate-500 dark:text-slate-400">
                                 {column.subtitle}
                               </p>
                             </div>
@@ -414,7 +414,7 @@ export default function SprintsPage() {
 
                           <div className="min-h-64 space-y-3 p-4">
                             {columnTasks.length === 0 ? (
-                              <div className="rounded-lg border border-dashed border-gray-200 p-4 text-center text-sm text-gray-500">
+                              <div className="rounded-lg border border-dashed border-slate-200 p-4 text-center text-sm text-slate-500 dark:border-slate-600 dark:text-slate-400">
                                 Sin tareas
                               </div>
                             ) : (
@@ -426,23 +426,23 @@ export default function SprintsPage() {
                                 return (
                                   <article
                                     key={task.id}
-                                    className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm"
+                                    className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md dark:border-slate-700 dark:bg-slate-800"
                                   >
                                     <div className="mb-3 flex items-start justify-between gap-3">
-                                      <h4 className="text-sm font-semibold text-gray-900">
+                                      <h4 className="text-sm font-semibold text-slate-900 dark:text-white">
                                         {task.title}
                                       </h4>
 
-                                      <span className="rounded-md bg-gray-100 px-2 py-1 text-xs text-gray-600">
+                                      <span className="rounded-md bg-slate-100 px-2 py-1 text-xs text-slate-600 dark:bg-slate-700 dark:text-slate-300">
                                         {task.priority || "medium"}
                                       </span>
                                     </div>
 
-                                    <p className="mb-4 line-clamp-2 text-sm text-gray-500">
+                                    <p className="mb-4 line-clamp-2 text-sm text-slate-500 dark:text-slate-400">
                                       {task.description || "Sin descripción"}
                                     </p>
 
-                                    <div className="flex items-center gap-2 text-sm text-gray-600">
+                                    <div className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300">
                                       <div className="flex h-7 w-7 items-center justify-center rounded-full bg-red-500 text-xs font-medium text-white">
                                         {getInitials(
                                           taskWithExtra.assigneeName
@@ -456,7 +456,7 @@ export default function SprintsPage() {
                                       </span>
                                     </div>
 
-                                    <div className="mt-3 text-xs text-gray-500">
+                                    <div className="mt-3 text-xs text-slate-500 dark:text-slate-400">
                                       Creada: {formatDate(task.createdAt)}
                                     </div>
                                   </article>
@@ -471,11 +471,11 @@ export default function SprintsPage() {
                 )}
               </>
             ) : (
-              <div className="rounded-lg border border-dashed border-gray-300 bg-white p-10 text-center">
-                <h2 className="text-lg font-semibold text-gray-900">
+              <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-10 text-center dark:border-slate-600 dark:bg-slate-800">
+                <h2 className="text-lg font-semibold text-slate-900 dark:text-white">
                   Sin sprint seleccionado
                 </h2>
-                <p className="mt-2 text-sm text-gray-500">
+                <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
                   Selecciona un sprint de la lista para ver sus tareas.
                 </p>
               </div>

@@ -140,7 +140,7 @@ export default function AllTasksPage() {
   };
 
   if (loading) {
-    return <div className="p-6 text-black">Cargando tareas...</div>;
+    return <div className="p-6 text-slate-900 dark:text-slate-100">Cargando tareas...</div>;
   }
 
   if (error) {
@@ -152,8 +152,8 @@ export default function AllTasksPage() {
     <>
       <div className="mb-6 flex items-center justify-between">
           <div>
-            <h1 className="text-2xl text-black font-semibold">Todas las Tareas</h1>
-            <p className="text-gray-700">
+            <h1 className="text-2xl text-slate-900 dark:text-white font-semibold">Todas las Tareas</h1>
+            <p className="text-slate-700 dark:text-slate-400">
               Vista completa de todas las tareas asignadas a ti y a tus grupos. Filtra, busca y gestiona tus tareas de manera eficiente.
             </p>
           </div>
@@ -166,14 +166,14 @@ export default function AllTasksPage() {
           </button>
         </div>
 
-      <div className="bg-white border rounded-xl p-5 mb-6">
+      <div className="rounded-2xl border border-slate-200 bg-white p-5 mb-6 shadow-sm dark:border-slate-700 dark:bg-slate-800">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
           <div>
-            <label className="text-sm text-gray-700">Buscar</label>
-            <div className="flex items-center border rounded-lg px-3 h-10 mt-1 text-gray-600">
-              <Filter size={16} className="text-gray-500 mr-2" />
+            <label className="text-sm text-slate-700 dark:text-slate-300">Buscar</label>
+            <div className="flex items-center rounded-lg border border-slate-200 bg-white px-3 h-10 mt-1 text-slate-600 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200">
+              <Filter size={16} className="text-slate-500 dark:text-slate-400 mr-2" />
               <input
-                className="w-full outline-none"
+                className="w-full bg-transparent outline-none placeholder:text-slate-400 dark:placeholder:text-slate-500"
                 placeholder="Buscar tareas..."
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
@@ -182,9 +182,9 @@ export default function AllTasksPage() {
           </div>
 
           <div>
-            <label className="text-sm text-gray-700">Estado</label>
+            <label className="text-sm text-slate-700 dark:text-slate-300">Estado</label>
             <select
-              className="w-full h-10 border rounded-lg px-3 mt-1 text-gray-600"
+              className="w-full h-10 rounded-lg border border-slate-200 bg-white px-3 mt-1 text-slate-600 outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
             >
@@ -198,9 +198,9 @@ export default function AllTasksPage() {
           </div>
 
           <div>
-            <label className="text-sm text-gray-700">Grupo</label>
+            <label className="text-sm text-slate-700 dark:text-slate-300">Grupo</label>
             <select
-              className="w-full h-10 border rounded-lg px-3 mt-1 text-gray-600"
+              className="w-full h-10 rounded-lg border border-slate-200 bg-white px-3 mt-1 text-slate-600 outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
               value={groupFilter}
               onChange={(e) => setGroupFilter(e.target.value)}
             >
@@ -215,7 +215,7 @@ export default function AllTasksPage() {
         </div>
 
         <div className="flex justify-between items-center">
-          <p className="text-sm text-gray-600">
+          <p className="text-sm text-slate-600 dark:text-slate-400">
             Mostrando {filteredTasks.length} de {tasks.length} tareas
           </p>
 
@@ -231,9 +231,9 @@ export default function AllTasksPage() {
         </div>
       </div>
 
-      <div className="bg-white border rounded-xl overflow-hidden">
+      <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-800">
         <table className="w-full">
-          <thead className="bg-gray-50 text-left text-sm text-gray-600">
+          <thead className="bg-slate-50 text-left text-sm text-slate-600 dark:bg-slate-900 dark:text-slate-400">
             <tr>
               <th className="p-4">Tarea</th>
               <th className="p-4">Lista</th>
@@ -246,30 +246,30 @@ export default function AllTasksPage() {
             </tr>
           </thead>
 
-          <tbody>
+          <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
             {filteredTasks.map((task) => (
-              <tr key={task.id} className="border-t">
+              <tr key={task.id} className="hover:bg-slate-50 dark:hover:bg-slate-700">
                 <td className="p-4">
                   <div>
-                    <div className="font-semibold text-black">{task.title}</div>
-                    <div className="text-sm text-gray-600">
+                    <div className="font-semibold text-slate-900 dark:text-white">{task.title}</div>
+                    <div className="text-sm text-slate-600 dark:text-slate-400">
                       {task.description || "Sin descripción"}
                     </div>
                   </div>
                 </td>
 
-                <td className="p-4 text-black">
+                <td className="p-4 text-slate-900 dark:text-slate-300">
                   {task.todoListName || "Sin lista"}
                 </td>
 
                 <td className="p-4">
-                  <span className="px-2 py-1 bg-gray-100 rounded-md text-sm text-gray-600">
+                  <span className="px-2 py-1 bg-slate-100 rounded-md text-sm text-slate-600 dark:bg-slate-700 dark:text-slate-300">
                     {task.groupName || "Sin grupo"}
                   </span>
                 </td>
 
                 <td className="p-4">
-                  <div className="flex items-center gap-2 text-black">
+                  <div className="flex items-center gap-2 text-slate-900 dark:text-slate-300">
                     <div className="w-7 h-7 bg-red-500 text-white rounded-full flex items-center justify-center text-xs">
                       {getInitials(task.assigneeName)}
                     </div>
@@ -281,23 +281,23 @@ export default function AllTasksPage() {
                   <span
                     className={`px-2 py-1 rounded-md text-sm ${
                       task.status === "completed"
-                        ? "bg-green-100 text-green-700"
+                        ? "bg-green-100 text-green-700 dark:bg-green-950 dark:text-green-300"
                         : task.status === "in_progress"
-                        ? "bg-blue-100 text-blue-700"
-                        : "bg-gray-100 text-gray-700"
+                        ? "bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-300"
+                        : "bg-slate-100 text-slate-700 dark:bg-slate-700 dark:text-slate-300"
                     }`}
                   >
                     {mapStatusToSpanish(task.status)}
                   </span>
                 </td>
 
-                <td className="p-4 text-black">
+                <td className="p-4 text-slate-900 dark:text-slate-300">
                   {mapPriorityToSpanish(task.priority)}
                 </td>
 
-                <td className="p-4 text-black">{formatDate(task.dueDate)}</td>
+                <td className="p-4 text-slate-900 dark:text-slate-300">{formatDate(task.dueDate)}</td>
 
-                <td className="p-4 text-black">{formatDate(task.createdAt)}</td>
+                <td className="p-4 text-slate-900 dark:text-slate-300">{formatDate(task.createdAt)}</td>
               </tr>
             ))}
           </tbody>

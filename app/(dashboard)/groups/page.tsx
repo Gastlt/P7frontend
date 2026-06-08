@@ -276,23 +276,23 @@ export default function GroupsPage() {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen bg-gray-50 items-center justify-center">
-        <p className="text-gray-600">Cargando grupos...</p>
+      <div className="flex min-h-screen items-center justify-center bg-slate-50 dark:bg-slate-950">
+        <p className="text-slate-600 dark:text-slate-400">Cargando grupos...</p>
       </div>
     );
   }
 
   return (
     <ProtectedRoute>
-    <div className="flex min-h-screen bg-gray-50">
+    <div className="flex min-h-screen bg-slate-50 dark:bg-slate-950">
       {/* Main */}
       <main className="flex-1 p-8">
         <div className="mb-6 flex items-start justify-between gap-4">
           <div>
-            <h1 className="text-2xl text-black font-semibold">
+            <h1 className="text-2xl text-slate-900 dark:text-white font-semibold">
               Grupos de Trabajo
             </h1>
-            <p className="text-gray-500">Maneja las tareas por grupo</p>
+            <p className="text-slate-500 dark:text-slate-400">Maneja las tareas por grupo</p>
           </div>
 
         </div>
@@ -314,22 +314,22 @@ export default function GroupsPage() {
                 <div key={group.id} className="group relative">
                   <Link
                     href={`/groups/${group.id}`}
-                    className="block rounded-xl border bg-white p-5 shadow-sm transition hover:border-red-200 hover:shadow-md"
+                    className="block rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:border-red-200 hover:shadow-md dark:border-slate-700 dark:bg-slate-800 dark:hover:border-red-900"
                   >
-                    <h3 className="pr-10 font-semibold text-black">{group.title}</h3>
-                    <p className="text-sm text-gray-500 mb-4">
+                    <h3 className="pr-10 font-semibold text-slate-900 dark:text-white">{group.title}</h3>
+                    <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">
                       {group.description}
                     </p>
 
                     {/* Progress */}
-                    <div className="flex justify-between text-sm text-gray-600 mb-1">
+                    <div className="flex justify-between text-sm text-slate-600 dark:text-slate-400 mb-1">
                       <span>Progress</span>
                       <span>
                         {group.progress} / {group.total}
                       </span>
                     </div>
 
-                    <div className="w-full bg-gray-200 rounded-full h-2 mb-4">
+                    <div className="w-full bg-slate-200 rounded-full h-2 mb-4 dark:bg-slate-700">
                       <div
                         className="bg-red-500 h-2 rounded-full"
                         style={{ width: `${percent}%` }}
@@ -337,23 +337,23 @@ export default function GroupsPage() {
                     </div>
 
                     {/* Stats */}
-                    <div className="flex gap-4 text-sm text-gray-600 mb-3">
+                    <div className="flex gap-4 text-sm text-slate-600 dark:text-slate-400 mb-3">
                       <span>○ {group.members.length}</span>
                       <span>○ {group.total}</span>
                     </div>
 
                     {/* Members */}
-                    <div className="flex flex-wrap gap-2 text-xs text-gray-600">
+                    <div className="flex flex-wrap gap-2 text-xs text-slate-600 dark:text-slate-300">
                       {group.members.slice(0, 5).map((member, memberIndex) => (
                         <span
                           key={`member-${group.id}-${memberIndex}`}
-                          className="px-2 py-1 bg-gray-100 rounded-md"
+                          className="px-2 py-1 bg-slate-100 rounded-md dark:bg-slate-700"
                         >
                           {member}
                         </span>
                       ))}
                       {group.members.length > 5 && (
-                        <span className="px-2 py-1 bg-gray-100 rounded-md">
+                        <span className="px-2 py-1 bg-slate-100 rounded-md dark:bg-slate-700">
                           +{group.members.length - 5}
                         </span>
                       )}
@@ -379,7 +379,7 @@ export default function GroupsPage() {
               );
             })
           ) : (
-            <p className="text-gray-500 col-span-2">
+            <p className="text-slate-500 dark:text-slate-400 col-span-2">
               No hay grupos disponibles para {selectedPerson}.
             </p>
           )}

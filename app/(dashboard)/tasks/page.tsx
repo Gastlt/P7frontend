@@ -6,8 +6,7 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import { getTasks, getUserGroups, updateTaskStatus, createTask, getTodoListsByGroup, TaskDTO, Group, CreateTaskRequest, updateTask } from "@/lib/api";
 import { getUser, clearSession } from "@/lib/session";
 import { Plus, Clock, CheckCircle2, AlertCircle, X, SquareChartGantt, LogOut, LayoutDashboard, Folder, CheckSquare, MoreVertical } from "lucide-react";
-import { DndContext, DragEndEvent, useDroppable, useDraggable } from "@dnd-kit/core";
-import { CSS } from "@dnd-kit/utilities";
+import { DndContext, DragEndEvent, DragOverlay, DragStartEvent, useDroppable, useDraggable } from "@dnd-kit/core";
 
 
 export default function UserViewPage() {
@@ -23,6 +22,7 @@ export default function UserViewPage() {
   const [user, setUser] = useState<any>(null);
   const [selectedTask, setSelectedTask] = useState<TaskDTO | null>(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
+  const [activeTask, setActiveTask] = useState<TaskDTO | null>(null);
 
   const [formData, setFormData] = useState({
     groupId: "",
@@ -156,8 +156,14 @@ export default function UserViewPage() {
   };
 
   // Handle drag and drop
+  const handleDragStart = (event: DragStartEvent) => {
+    const taskId = parseInt(event.active.id.toString().replace("task-", ""));
+    setActiveTask(allTasks.find((task) => task.id === taskId) ?? null);
+  };
+
   const handleDragEnd = async (event: DragEndEvent) => {
     const { active, over } = event;
+    setActiveTask(null);
 
     if (!over) return;
 
@@ -217,13 +223,13 @@ export default function UserViewPage() {
   const getPriorityColor = (priority: TaskDTO["priority"]) => {
     switch (priority) {
       case "high":
-        return "bg-red-100 text-red-700";
+        return "bg-red-100 text-red-700 dark:bg-red-950 dark:text-red-300";
       case "medium":
-        return "bg-yellow-100 text-yellow-700";
+        return "bg-yellow-100 text-yellow-700 dark:bg-yellow-950 dark:text-yellow-300";
       case "low":
-        return "bg-green-100 text-green-700";
+        return "bg-green-100 text-green-700 dark:bg-green-950 dark:text-green-300";
       default:
-        return "bg-gray-100 text-gray-700";
+        return "bg-slate-100 text-slate-700 dark:bg-slate-700 dark:text-slate-300";
     }
   };
 
@@ -235,21 +241,21 @@ export default function UserViewPage() {
           <div className="flex items-center justify-center min-h-screen">
             <div className="text-center">
               <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-red-600 mb-4"></div>
-              <p className="text-gray-500">Cargando tareas...</p>
+              <p className="text-slate-500 dark:text-slate-400">Cargando tareas...</p>
             </div>
           </div>
         ) : groups.length === 0 ? (
           // Empty state - centered card
           <div className="flex items-center justify-center min-h-[60vh]">
-            <div className="bg-white border rounded-xl p-12 w-full max-w-md text-center shadow-sm">
-              <AlertCircle size={64} className="mx-auto text-gray-300 mb-6" />
-              <h2 className="text-2xl text-black font-semibold mb-3">
+              <div className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-12 text-center shadow-sm dark:border-slate-700 dark:bg-slate-800">
+              <AlertCircle size={64} className="mx-auto text-slate-300 dark:text-slate-600 mb-6" />
+              <h2 className="text-2xl text-slate-900 dark:text-white font-semibold mb-3">
                 Sin grupos asignados
               </h2>
-              <p className="text-gray-600 text-lg mb-2">
+              <p className="text-slate-600 dark:text-slate-300 text-lg mb-2">
                 No perteneces a ningún grupo todavía.
               </p>
-              <p className="text-gray-500">
+              <p className="text-slate-500 dark:text-slate-400">
                 Contacta con un administrador para que te asigne a un grupo y comienza a gestionar tus tareas.
               </p>
             </div>
@@ -258,8 +264,8 @@ export default function UserViewPage() {
           <>
             {/* Header */}
             <div className="mb-8">
-              <h1 className="text-3xl text-black font-semibold">Mis Tareas</h1>
-              <p className="text-gray-600 mt-1">Hola, {userName} 👋</p>
+              <h1 className="text-3xl text-slate-900 dark:text-white font-semibold">Mis Tareas</h1>
+              <p className="text-slate-600 dark:text-slate-400 mt-1">Hola, {userName} 👋</p>
             </div>
 
             {/* Error message */}
@@ -273,15 +279,15 @@ export default function UserViewPage() {
             )}
 
             {/* Group selector and create button */}
-            <div className="bg-white border rounded-xl p-5 mb-6 flex gap-4 items-end">
+            <div className="rounded-2xl border border-slate-200 bg-white p-5 mb-6 flex gap-4 items-end shadow-sm dark:border-slate-700 dark:bg-slate-800">
               <div className="flex-1">
-                <label className="text-sm font-medium text-gray-700 block mb-2">
+                <label className="text-sm font-medium text-slate-700 dark:text-slate-300 block mb-2">
                   Selecciona un grupo
                 </label>
                 <select
                   value={selectedGroupId || ""}
                   onChange={(e) => setSelectedGroupId(Number(e.target.value))}
-                  className="w-full border rounded-lg px-3 py-2 text-gray-600"
+                  className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-slate-600 outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
                 >
                   {groups.map((group) => (
                     <option key={group.id} value={group.id}>
@@ -305,13 +311,17 @@ export default function UserViewPage() {
 
             {/* Kanban Board */}
             {filteredTasks.length === 0 ? (
-              <div className="bg-white border rounded-xl p-12 text-center">
-                <AlertCircle size={48} className="mx-auto text-gray-400 mb-4" />
-                <p className="text-gray-600 text-lg">No tienes tareas en este grupo</p>
-                <p className="text-gray-500 mt-2">Crea una nueva tarea para empezar</p>
+              <div className="rounded-2xl border border-slate-200 bg-white p-12 text-center shadow-sm dark:border-slate-700 dark:bg-slate-800">
+                <AlertCircle size={48} className="mx-auto text-slate-400 dark:text-slate-600 mb-4" />
+                <p className="text-slate-600 dark:text-slate-300 text-lg">No tienes tareas en este grupo</p>
+                <p className="text-slate-500 dark:text-slate-400 mt-2">Crea una nueva tarea para empezar</p>
               </div>
             ) : (
-              <DndContext onDragEnd={handleDragEnd}>
+              <DndContext
+                onDragStart={handleDragStart}
+                onDragEnd={handleDragEnd}
+                onDragCancel={() => setActiveTask(null)}
+              >
                 <div className="grid grid-cols-3 gap-6">
                   {/* Pendiente Column */}
                   <DroppableKanbanColumn
@@ -358,6 +368,19 @@ export default function UserViewPage() {
                     }}
                   />
                 </div>
+
+                <DragOverlay adjustScale={false}>
+                  {activeTask ? (
+                    <TaskCardSurface
+                      task={activeTask}
+                      updating={updating}
+                      mapPriorityToSpanish={mapPriorityToSpanish}
+                      getPriorityColor={getPriorityColor}
+                      onTaskClick={() => undefined}
+                      className="pointer-events-none rotate-1 shadow-xl"
+                    />
+                  ) : null}
+                </DragOverlay>
               </DndContext>
             )}
 
@@ -532,23 +555,23 @@ function DroppableKanbanColumn({
   });
 
   const getColumnColor = (title: string) => {
-    if (title === "Pendiente") return "bg-gray-50";
-    if (title === "En Progreso") return "bg-blue-50";
-    if (title === "Completada") return "bg-green-50";
-    return "bg-gray-50";
+    if (title === "Pendiente") return "bg-slate-50 dark:bg-slate-900";
+    if (title === "En Progreso") return "bg-blue-50 dark:bg-slate-900";
+    if (title === "Completada") return "bg-green-50 dark:bg-slate-900";
+    return "bg-slate-50 dark:bg-slate-900";
   };
 
   return (
     <div
       ref={setNodeRef}
-      className={`${getColumnColor(title)} border rounded-xl p-4 min-h-96 transition-colors ${
-        isOver ? "ring-2 ring-red-500 bg-red-50" : ""
+      className={`${getColumnColor(title)} rounded-2xl border border-slate-200 p-4 min-h-96 shadow-sm transition-colors dark:border-slate-700 ${
+        isOver ? "ring-2 ring-red-500 bg-red-50 dark:bg-red-950/40" : ""
       }`}
     >
-      <h3 className="text-lg font-semibold text-black mb-4">{title}</h3>
+      <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-4">{title}</h3>
       <div className="space-y-3">
         {tasks.length === 0 ? (
-          <p className="text-sm text-gray-500 text-center py-8">Sin tareas</p>
+          <p className="text-sm text-slate-500 dark:text-slate-400 text-center py-8">Sin tareas</p>
         ) : (
           tasks.map((task) => (
             <DraggableTaskCard
@@ -571,7 +594,6 @@ function DroppableKanbanColumn({
 function DraggableTaskCard({
   task,
   updating,
-  mapStatusToSpanish,
   mapPriorityToSpanish,
   getPriorityColor,
   onTaskClick,
@@ -583,28 +605,50 @@ function DraggableTaskCard({
   getPriorityColor: (priority: TaskDTO["priority"]) => string;
   onTaskClick: (task: TaskDTO) => void;
 }) {
-  const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
+  const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
     id: `task-${task.id}`,
   });
-
-  const style = transform
-    ? {
-        transform: CSS.Transform.toString(transform),
-      }
-    : undefined;
 
   return (
     <div
       ref={setNodeRef}
-      style={style}
       {...attributes}
       {...listeners}
-      className={`bg-white rounded-lg p-4 shadow-sm border hover:shadow-md transition-all cursor-grab active:cursor-grabbing ${
-        isDragging ? "opacity-50" : "opacity-100"
-      }`}
+      className={isDragging ? "opacity-30" : "opacity-100"}
+    >
+      <TaskCardSurface
+        task={task}
+        updating={updating}
+        mapPriorityToSpanish={mapPriorityToSpanish}
+        getPriorityColor={getPriorityColor}
+        onTaskClick={onTaskClick}
+        className="cursor-grab active:cursor-grabbing"
+      />
+    </div>
+  );
+}
+
+function TaskCardSurface({
+  task,
+  updating,
+  mapPriorityToSpanish,
+  getPriorityColor,
+  onTaskClick,
+  className = "",
+}: {
+  task: TaskDTO;
+  updating: number | null;
+  mapPriorityToSpanish: (priority: TaskDTO["priority"]) => string;
+  getPriorityColor: (priority: TaskDTO["priority"]) => string;
+  onTaskClick: (task: TaskDTO) => void;
+  className?: string;
+}) {
+  return (
+    <div
+      className={`rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md dark:border-slate-700 dark:bg-slate-800 ${className}`}
     >
       <div className="flex justify-between items-start mb-2">
-        <h4 className="font-semibold text-black text-sm flex-1">{task.title}</h4>
+        <h4 className="font-semibold text-slate-900 dark:text-white text-sm flex-1">{task.title}</h4>
         <button
           onPointerDown={(e) => {
             e.preventDefault();
@@ -615,14 +659,14 @@ function DraggableTaskCard({
             e.stopPropagation();
             onTaskClick(task);
           }}
-          className="text-gray-400 hover:text-gray-600 p-1 ml-2"
+          className="text-slate-400 hover:text-slate-600 p-1 ml-2 dark:hover:text-slate-200"
         >
           <MoreVertical size={16} />
         </button>
       </div>
 
       {task.description && (
-        <p className="text-xs text-gray-600 mb-3 line-clamp-2">{task.description}</p>
+        <p className="text-xs text-slate-600 dark:text-slate-400 mb-3 line-clamp-2">{task.description}</p>
       )}
 
       <div className="flex gap-2 mb-3 flex-wrap">
@@ -630,12 +674,12 @@ function DraggableTaskCard({
           {mapPriorityToSpanish(task.priority)}
         </span>
         {task.storyPoints && (
-          <span className="text-xs text-gray-700 px-2 py-1 bg-gray-100 rounded">
+          <span className="text-xs text-slate-700 px-2 py-1 bg-slate-100 rounded dark:bg-slate-700 dark:text-slate-300">
             {task.storyPoints} SP
           </span>
         )}
         {task.dueDate && (
-          <span className="text-xs text-gray-600 px-2 py-1 bg-gray-100 rounded">
+          <span className="text-xs text-slate-600 px-2 py-1 bg-slate-100 rounded dark:bg-slate-700 dark:text-slate-300">
             {new Intl.DateTimeFormat("es-MX", {
               month: "short",
               day: "numeric",
@@ -645,12 +689,11 @@ function DraggableTaskCard({
       </div>
 
       {updating === task.id && (
-        <div className="text-xs text-gray-500 text-center py-1">Actualizando...</div>
+        <div className="text-xs text-slate-500 dark:text-slate-400 text-center py-1">Actualizando...</div>
       )}
     </div>
   );
 }
-
 
 // Task Detail Modal Component
 function TaskDetailModal({
@@ -926,10 +969,10 @@ function KanbanColumn({
   getPriorityColor: (priority: TaskDTO["priority"]) => string;
 }) {
   const getColumnColor = (title: string) => {
-    if (title === "Pendiente") return "bg-gray-50";
-    if (title === "En Progreso") return "bg-blue-50";
-    if (title === "Completada") return "bg-green-50";
-    return "bg-gray-50";
+    if (title === "Pendiente") return "bg-slate-50 dark:bg-slate-900";
+    if (title === "En Progreso") return "bg-blue-50 dark:bg-slate-900";
+    if (title === "Completada") return "bg-green-50 dark:bg-slate-900";
+    return "bg-slate-50 dark:bg-slate-900";
   };
 
   const getNextStatus = (currentStatus: TaskDTO["status"]): TaskDTO["status"] => {
@@ -939,20 +982,20 @@ function KanbanColumn({
   };
 
   return (
-    <div className={`${getColumnColor(title)} border rounded-xl p-4 min-h-96`}>
-      <h3 className="text-lg font-semibold text-black mb-4">{title}</h3>
+    <div className={`${getColumnColor(title)} rounded-2xl border border-slate-200 p-4 min-h-96 shadow-sm dark:border-slate-700`}>
+      <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-4">{title}</h3>
       <div className="space-y-3">
         {tasks.length === 0 ? (
-          <p className="text-sm text-gray-500 text-center py-8">Sin tareas</p>
+          <p className="text-sm text-slate-500 dark:text-slate-400 text-center py-8">Sin tareas</p>
         ) : (
           tasks.map((task) => (
             <div
               key={task.id}
-              className="bg-white rounded-lg p-4 shadow-sm border hover:shadow-md transition-shadow"
+              className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md dark:border-slate-700 dark:bg-slate-800"
             >
-              <h4 className="font-semibold text-black text-sm mb-2">{task.title}</h4>
+              <h4 className="font-semibold text-slate-900 dark:text-white text-sm mb-2">{task.title}</h4>
               {task.description && (
-                <p className="text-xs text-gray-600 mb-3 line-clamp-2">{task.description}</p>
+                <p className="text-xs text-slate-600 dark:text-slate-400 mb-3 line-clamp-2">{task.description}</p>
               )}
 
               <div className="flex gap-2 mb-3 flex-wrap">
@@ -960,7 +1003,7 @@ function KanbanColumn({
                   {mapPriorityToSpanish(task.priority)}
                 </span>
                 {task.dueDate && (
-                  <span className="text-xs text-gray-600 px-2 py-1 bg-gray-100 rounded">
+                  <span className="text-xs text-slate-600 px-2 py-1 bg-slate-100 rounded dark:bg-slate-700 dark:text-slate-300">
                     {new Intl.DateTimeFormat("es-MX", {
                       month: "short",
                       day: "numeric",
