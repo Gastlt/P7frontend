@@ -266,9 +266,106 @@
   max-width: 82%;
   padding: 11px 13px;
   overflow-wrap: anywhere;
-  white-space: pre-wrap;
+  white-space: normal;
   font-size: 13.5px;
   line-height: 1.52;
+}
+
+.plainText {
+  white-space: pre-wrap;
+}
+
+.markdown {
+  display: grid;
+  gap: 8px;
+}
+
+.markdown > :first-child {
+  margin-top: 0;
+}
+
+.markdown > :last-child {
+  margin-bottom: 0;
+}
+
+.markdown p,
+.markdown h3,
+.markdown h4,
+.markdown ul,
+.markdown ol,
+.markdown blockquote,
+.markdown pre {
+  margin: 0;
+}
+
+.markdown h3,
+.markdown h4 {
+  color: inherit;
+  font-size: 13.5px;
+  font-weight: 750;
+  line-height: 1.35;
+}
+
+.markdown strong {
+  font-weight: 750;
+}
+
+.markdown em {
+  font-style: italic;
+}
+
+.markdown a {
+  color: #be123c;
+  font-weight: 650;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.markdown ul,
+.markdown ol {
+  display: grid;
+  gap: 4px;
+  padding-left: 18px;
+}
+
+.markdown li {
+  padding-left: 1px;
+}
+
+.markdown code {
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  border-radius: 5px;
+  padding: 1px 4px;
+  color: #9f1239;
+  background: #fff1f2;
+  font-family:
+    ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
+    "Courier New", monospace;
+  font-size: 0.92em;
+}
+
+.markdown pre {
+  max-width: 100%;
+  overflow-x: auto;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 9px 10px;
+  background: #f8fafc;
+  white-space: pre;
+}
+
+.markdown pre code {
+  display: block;
+  border: 0;
+  padding: 0;
+  color: #334155;
+  background: transparent;
+}
+
+.markdown blockquote {
+  border-left: 3px solid #fda4af;
+  padding-left: 10px;
+  color: #475569;
 }
 
 .assistantBubble {
@@ -494,6 +591,31 @@
   color: #e2e8f0;
   background: #1e293b;
   box-shadow: none;
+}
+
+:global(.dark) .markdown a {
+  color: #fda4af;
+}
+
+:global(.dark) .markdown code {
+  border-color: rgba(148, 163, 184, 0.28);
+  color: #fecdd3;
+  background: #4c0519;
+}
+
+:global(.dark) .markdown pre {
+  border-color: #334155;
+  background: #0f172a;
+}
+
+:global(.dark) .markdown pre code {
+  color: #e2e8f0;
+  background: transparent;
+}
+
+:global(.dark) .markdown blockquote {
+  border-color: #be123c;
+  color: #cbd5e1;
 }
 
 :global(.dark) .errorBubble {

@@ -3,6 +3,7 @@
 import {
   type FormEvent,
   type KeyboardEvent,
+  type ReactNode,
   useEffect,
   useRef,
   useState,
@@ -43,6 +44,206 @@ function createId() {
   }
 
   return `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+}
+
+function isSafeLink(url: string) {
+  return /^(https?:\/\/|mailto:)/i.test(url);
+}
+
+function renderInlineMarkdown(text: string, keyPrefix: string): ReactNode[] {
+  const elements: ReactNode[] = [];
+  const inlinePattern =
+    /(\[([^\]]+)\]\(([^)\s]+)\)|`([^`]+)`|\*\*([^*]+)\*\*|__([^_]+)__|\*([^*]+)\*|_([^_]+)_)/g;
+  let lastIndex = 0;
+  let match: RegExpExecArray | null;
+
+  while ((match = inlinePattern.exec(text)) !== null) {
+    if (match.index > lastIndex) {
+      elements.push(text.slice(lastIndex, match.index));
+    }
+
+    const key = `${keyPrefix}-${match.index}`;
+
+    if (match[2] && match[3] && isSafeLink(match[3])) {
+      elements.push(
+        <a key={key} href={match[3]} target="_blank" rel="noreferrer">
+          {renderInlineMarkdown(match[2], `${key}-link`)}
+        </a>
+      );
+    } else if (match[4]) {
+      elements.push(<code key={key}>{match[4]}</code>);
+    } else if (match[5] || match[6]) {
+      elements.push(
+        <strong key={key}>
+          {renderInlineMarkdown(match[5] ?? match[6] ?? "", `${key}-strong`)}
+        </strong>
+      );
+    } else if (match[7] || match[8]) {
+      elements.push(
+        <em key={key}>
+          {renderInlineMarkdown(match[7] ?? match[8] ?? "", `${key}-em`)}
+        </em>
+      );
+    } else {
+      elements.push(match[0]);
+    }
+
+    lastIndex = inlinePattern.lastIndex;
+  }
+
+  if (lastIndex < text.length) {
+    elements.push(text.slice(lastIndex));
+  }
+
+  return elements;
+}
+
+function renderInlineWithBreaks(text: string, keyPrefix: string) {
+  return text.split("\n").flatMap((line, index) => {
+    const content = renderInlineMarkdown(line, `${keyPrefix}-${index}`);
+    if (index === 0) return content;
+
+    return [<br key={`${keyPrefix}-br-${index}`} />, ...content];
+  });
+}
+
+function isMarkdownBlockStart(line: string) {
+  return (
+    /^```/.test(line) ||
+    /^#{1,3}\s+/.test(line) ||
+    /^\s*[-*]\s+/.test(line) ||
+    /^\s*\d+\.\s+/.test(line) ||
+    /^>\s?/.test(line)
+  );
+}
+
+function MarkdownMessage({ text }: { text: string }) {
+  const lines = text.replace(/\r\n/g, "\n").split("\n");
+  const blocks: ReactNode[] = [];
+  let index = 0;
+
+  while (index < lines.length) {
+    const line = lines[index];
+
+    if (!line.trim()) {
+      index += 1;
+      continue;
+    }
+
+    if (/^```/.test(line)) {
+      const codeLines: string[] = [];
+      index += 1;
+
+      while (index < lines.length && !/^```/.test(lines[index])) {
+        codeLines.push(lines[index]);
+        index += 1;
+      }
+
+      if (index < lines.length) index += 1;
+
+      blocks.push(
+        <pre key={`code-${index}`}>
+          <code>{codeLines.join("\n")}</code>
+        </pre>
+      );
+      continue;
+    }
+
+    const headingMatch = /^(#{1,3})\s+(.+)$/.exec(line);
+    if (headingMatch) {
+      const headingLevel = headingMatch[1].length;
+      const headingContent = renderInlineMarkdown(
+        headingMatch[2],
+        `heading-${index}`
+      );
+
+      blocks.push(
+        headingLevel === 1 ? (
+          <h3 key={`heading-${index}`}>{headingContent}</h3>
+        ) : (
+          <h4 key={`heading-${index}`}>{headingContent}</h4>
+        )
+      );
+      index += 1;
+      continue;
+    }
+
+    if (/^\s*[-*]\s+/.test(line)) {
+      const items: string[] = [];
+
+      while (index < lines.length && /^\s*[-*]\s+/.test(lines[index])) {
+        items.push(lines[index].replace(/^\s*[-*]\s+/, ""));
+        index += 1;
+      }
+
+      blocks.push(
+        <ul key={`ul-${index}`}>
+          {items.map((item, itemIndex) => (
+            <li key={`${index}-${itemIndex}`}>
+              {renderInlineMarkdown(item, `ul-${index}-${itemIndex}`)}
+            </li>
+          ))}
+        </ul>
+      );
+      continue;
+    }
+
+    if (/^\s*\d+\.\s+/.test(line)) {
+      const items: string[] = [];
+
+      while (index < lines.length && /^\s*\d+\.\s+/.test(lines[index])) {
+        items.push(lines[index].replace(/^\s*\d+\.\s+/, ""));
+        index += 1;
+      }
+
+      blocks.push(
+        <ol key={`ol-${index}`}>
+          {items.map((item, itemIndex) => (
+            <li key={`${index}-${itemIndex}`}>
+              {renderInlineMarkdown(item, `ol-${index}-${itemIndex}`)}
+            </li>
+          ))}
+        </ol>
+      );
+      continue;
+    }
+
+    if (/^>\s?/.test(line)) {
+      const quoteLines: string[] = [];
+
+      while (index < lines.length && /^>\s?/.test(lines[index])) {
+        quoteLines.push(lines[index].replace(/^>\s?/, ""));
+        index += 1;
+      }
+
+      blocks.push(
+        <blockquote key={`quote-${index}`}>
+          {renderInlineWithBreaks(quoteLines.join("\n"), `quote-${index}`)}
+        </blockquote>
+      );
+      continue;
+    }
+
+    const paragraphLines = [line];
+    index += 1;
+
+    while (
+      index < lines.length &&
+      lines[index].trim() &&
+      !isMarkdownBlockStart(lines[index])
+    ) {
+      paragraphLines.push(lines[index]);
+      index += 1;
+    }
+
+    blocks.push(
+      <p key={`p-${index}`}>
+        {renderInlineWithBreaks(paragraphLines.join("\n"), `p-${index}`)}
+      </p>
+    );
+  }
+
+  return <div className={styles.markdown}>{blocks}</div>;
 }
 
 export default function FloatingChatBot() {
@@ -218,7 +419,15 @@ export default function FloatingChatBot() {
                       <span />
                     </div>
                   ) : (
-                    message.text
+                    <>
+                      {message.role === "assistant" ? (
+                        <MarkdownMessage text={message.text} />
+                      ) : (
+                        <span className={styles.plainText}>
+                          {message.text}
+                        </span>
+                      )}
+                    </>
                   )}
                 </div>
               </div>
