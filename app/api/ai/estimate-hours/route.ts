@@ -2,6 +2,7 @@ import { type NextRequest, NextResponse } from "next/server";
 
 const DEFAULT_BACKEND_DESTINATION =
   "http://todolistapp-backend-router.mtdrworkshop.svc.cluster.local";
+const KPI_FETCH_TIMEOUT_MS = 2500;
 
 type TaskEstimateRequest = {
   title?: unknown;
@@ -32,6 +33,13 @@ type CompletedByUserKpi = {
 
 type VelocityKpi = {
   averageCompletedTasksPerSprint?: number;
+};
+
+type KpiReadResult = {
+  hoursBySprint: HoursBySprintKpi[];
+  completedByUser: CompletedByUserKpi[];
+  velocity: VelocityKpi;
+  warning?: string;
 };
 
 type BackendFetchOptions = {
@@ -120,19 +128,27 @@ async function fetchBackendJson<T>({
   authorization,
   path,
 }: BackendFetchOptions): Promise<T> {
-  const response = await fetch(`${getBackendBaseUrl()}${path}`, {
-    cache: "no-store",
-    headers: authorization ? { Authorization: authorization } : undefined,
-  });
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), KPI_FETCH_TIMEOUT_MS);
 
-  if (!response.ok) {
-    const body = await response.text();
-    throw new Error(
-      body || `El backend respondio con estado ${response.status}.`
-    );
+  try {
+    const response = await fetch(`${getBackendBaseUrl()}${path}`, {
+      cache: "no-store",
+      headers: authorization ? { Authorization: authorization } : undefined,
+      signal: controller.signal,
+    });
+
+    if (!response.ok) {
+      const body = await response.text();
+      throw new Error(
+        body || `El backend respondio con estado ${response.status}.`
+      );
+    }
+
+    return response.json() as Promise<T>;
+  } finally {
+    clearTimeout(timeoutId);
   }
-
-  return response.json() as Promise<T>;
 }
 
 function matchesRequest(
@@ -154,7 +170,8 @@ function estimateFromKpis(
   payload: TaskEstimateRequest,
   hoursBySprint: HoursBySprintKpi[],
   completedByUser: CompletedByUserKpi[],
-  velocity: VelocityKpi
+  velocity: VelocityKpi,
+  warning?: string
 ) {
   const comparableHours = hoursBySprint.filter(
     (item) =>
@@ -220,7 +237,11 @@ function estimateFromKpis(
   const textMultiplier = textLength > 500 ? 1.15 : textLength < 80 ? 0.9 : 1;
 
   const estimatedHours = roundToHalfHour(
-    clamp(baselineHours * storyMultiplier * priorityMultiplier * textMultiplier, 1, 80)
+    clamp(
+      baselineHours * storyMultiplier * priorityMultiplier * textMultiplier,
+      1,
+      80
+    )
   );
   const confidence =
     perTaskSamples.length >= 3
@@ -228,19 +249,21 @@ function estimateFromKpis(
       : perTaskSamples.length >= 1 || velocityPerTask
         ? "media"
         : "baja";
-  const uncertainty = confidence === "alta" ? 0.2 : confidence === "media" ? 0.35 : 0.5;
+  const uncertainty =
+    confidence === "alta" ? 0.2 : confidence === "media" ? 0.35 : 0.5;
+  const reason =
+    perTaskSamples.length > 0
+      ? "Estimacion basada en horas historicas por tarea completada para usuarios, grupos y sprints comparables."
+      : velocityPerTask
+        ? "Estimacion basada en horas historicas por sprint y velocidad promedio de tareas completadas."
+        : "Estimacion base por defecto porque no hay KPIs historicos suficientes para comparar.";
 
   return {
     estimatedHours,
     minHours: roundToHalfHour(clamp(estimatedHours * (1 - uncertainty), 1, 80)),
     maxHours: roundToHalfHour(clamp(estimatedHours * (1 + uncertainty), 1, 80)),
     confidence,
-    reason:
-      perTaskSamples.length > 0
-        ? "Estimacion basada en horas historicas por tarea completada para usuarios, grupos y sprints comparables."
-        : velocityPerTask
-          ? "Estimacion basada en horas historicas por sprint y velocidad promedio de tareas completadas."
-          : "Estimacion base por defecto porque no hay KPIs historicos suficientes para comparar.",
+    reason: warning ? `${reason} ${warning}` : reason,
     signals: {
       comparableSamples: perTaskSamples.length,
       baselineHours: roundToHalfHour(baselineHours),
@@ -248,6 +271,52 @@ function estimateFromKpis(
       storyPoints: storyPoints || null,
       velocityAverageCompletedTasksPerSprint: velocityAverage,
     },
+  };
+}
+
+async function readKpis(
+  authorization: string | null,
+  payload: TaskEstimateRequest
+): Promise<KpiReadResult> {
+  const hoursQuery = createKpiQuery(payload);
+  const sprintId = readNumber(payload.sprintId);
+  const completedQuery = sprintId ? `?sprintId=${sprintId}` : "";
+
+  const [hoursResult, completedResult, velocityResult] =
+    await Promise.allSettled([
+      fetchBackendJson<HoursBySprintKpi[]>({
+        authorization,
+        path: `/api/kpis/hours-by-sprint${hoursQuery ? `?${hoursQuery}` : ""}`,
+      }),
+      fetchBackendJson<CompletedByUserKpi[]>({
+        authorization,
+        path: `/api/kpis/completed-by-user${completedQuery}`,
+      }),
+      fetchBackendJson<VelocityKpi>({
+        authorization,
+        path: "/api/kpis/velocity",
+      }),
+    ]);
+
+  const failedReads = [hoursResult, completedResult, velocityResult].filter(
+    (result) => result.status === "rejected"
+  ).length;
+
+  return {
+    hoursBySprint:
+      hoursResult.status === "fulfilled" && Array.isArray(hoursResult.value)
+        ? hoursResult.value
+        : [],
+    completedByUser:
+      completedResult.status === "fulfilled" &&
+      Array.isArray(completedResult.value)
+        ? completedResult.value
+        : [],
+    velocity: velocityResult.status === "fulfilled" ? velocityResult.value : {},
+    warning:
+      failedReads > 0
+        ? "No se pudieron leer todos los KPIs del backend; por eso la confianza puede ser baja."
+        : undefined,
   };
 }
 
@@ -279,28 +348,18 @@ export async function POST(request: NextRequest) {
   }
 
   const authorization = request.headers.get("authorization");
-  const hoursQuery = createKpiQuery(payload);
-  const sprintId = readNumber(payload.sprintId);
-  const completedQuery = sprintId ? `?sprintId=${sprintId}` : "";
 
   try {
-    const [hoursBySprint, completedByUser, velocity] = await Promise.all([
-      fetchBackendJson<HoursBySprintKpi[]>({
-        authorization,
-        path: `/api/kpis/hours-by-sprint${hoursQuery ? `?${hoursQuery}` : ""}`,
-      }),
-      fetchBackendJson<CompletedByUserKpi[]>({
-        authorization,
-        path: `/api/kpis/completed-by-user${completedQuery}`,
-      }),
-      fetchBackendJson<VelocityKpi>({
-        authorization,
-        path: "/api/kpis/velocity",
-      }),
-    ]);
+    const kpis = await readKpis(authorization, payload);
 
     return NextResponse.json(
-      estimateFromKpis(payload, hoursBySprint, completedByUser, velocity)
+      estimateFromKpis(
+        payload,
+        kpis.hoursBySprint,
+        kpis.completedByUser,
+        kpis.velocity,
+        kpis.warning
+      )
     );
   } catch (error) {
     const message =
