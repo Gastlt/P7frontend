@@ -5,6 +5,7 @@ import { FormEvent, useMemo, useState, useEffect } from "react";
 import { GroupTask, Group, fetchAllGroupsData, createTask, updateTask, deleteTask, fetchUsers, fetchTodoListsByGroupId } from "@/lib/groupsData";
 import Link from "next/link";
 import { useParams } from "next/navigation";
+import ProtectedRoute from "@/components/ProtectedRoute";
 
 // MODAL DE NUEVA TAREA
 
@@ -69,46 +70,46 @@ function NewTaskModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
-      <div className="w-full max-w-md rounded-lg bg-white p-6 shadow-xl">
-        <h2 className="text-xl font-semibold text-gray-900">Crear Nueva Tarea</h2>
-        <p className="mt-1 text-gray-500">Agrega una tarea a {groupTitle}</p>
+      <div className="w-full max-w-md rounded-lg border border-slate-200 bg-white p-6 shadow-xl dark:border-slate-700 dark:bg-slate-800">
+        <h2 className="text-xl font-semibold text-slate-900 dark:text-white">Crear Nueva Tarea</h2>
+        <p className="mt-1 text-slate-500 dark:text-slate-400">Agrega una tarea a {groupTitle}</p>
 
         <form onSubmit={handleSubmit} className="mt-6 space-y-4">
           <div>
-            <label className="mb-2 block text-sm font-medium text-gray-700">
+            <label className="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-300">
               Título de la Tarea *
             </label>
             <input
               value={title}
               onChange={(event) => setTitle(event.target.value)}
               placeholder="Ej: Implementar dashboard"
-              className="h-10 w-full rounded-lg border border-gray-300 px-3 text-sm text-gray-900 outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500"
+              className="h-10 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm text-slate-900 outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 dark:border-slate-600 dark:bg-slate-900 dark:text-white dark:placeholder:text-slate-500"
               disabled={isLoading}
             />
           </div>
 
           <div>
-            <label className="mb-2 block text-sm font-medium text-gray-700">
+            <label className="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-300">
               Descripción
             </label>
             <textarea
               value={description}
               onChange={(event) => setDescription(event.target.value)}
               placeholder="Añade más detalles (opcional)"
-              className="h-20 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500"
+              className="h-20 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 dark:border-slate-600 dark:bg-slate-900 dark:text-white dark:placeholder:text-slate-500"
               disabled={isLoading}
             />
           </div>
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="mb-2 block text-sm font-medium text-gray-700">
+              <label className="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-300">
                 Asignar a *
               </label>
               <select
                 value={assignee}
                 onChange={(event) => setAssignee(event.target.value)}
-                className="h-10 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-900 outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500"
+                className="h-10 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm text-slate-900 outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 dark:border-slate-600 dark:bg-slate-900 dark:text-white"
                 disabled={isLoading || members.length === 0}
               >
                 <option value="">{members.length === 0 ? "No hay miembros" : "Seleccionar miembro"}</option>
@@ -121,13 +122,13 @@ function NewTaskModal({
             </div>
 
             <div>
-              <label className="mb-2 block text-sm font-medium text-gray-700">
+              <label className="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-300">
                 Prioridad
               </label>
               <select
                 value={priority}
                 onChange={(event) => setPriority(event.target.value as "low" | "medium" | "high")}
-                className="h-10 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-900 outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500"
+                className="h-10 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm text-slate-900 outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 dark:border-slate-600 dark:bg-slate-900 dark:text-white"
                 disabled={isLoading}
               >
                 <option value="low">Baja</option>
@@ -138,26 +139,26 @@ function NewTaskModal({
           </div>
 
           <div>
-            <label className="mb-2 block text-sm font-medium text-gray-700">
+            <label className="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-300">
               Fecha de Vencimiento
             </label>
             <input
               type="date"
               value={dueDate}
               onChange={(event) => setDueDate(event.target.value)}
-              className="h-10 w-full rounded-lg border border-gray-300 px-3 text-sm text-gray-900 outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500"
+              className="h-10 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm text-slate-900 outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 dark:border-slate-600 dark:bg-slate-900 dark:text-white"
               disabled={isLoading}
             />
           </div>
 
           {error && (
-            <div className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-600">
+            <div className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-600 dark:border-red-900/60 dark:bg-red-950/40 dark:text-red-300">
               {error}
             </div>
           )}
 
           {success && (
-            <div className="rounded-lg border border-green-200 bg-green-50 px-3 py-2 text-sm text-green-600 flex items-center gap-2">
+            <div className="flex items-center gap-2 rounded-lg border border-green-200 bg-green-50 px-3 py-2 text-sm text-green-600 dark:border-green-900/60 dark:bg-green-950/40 dark:text-green-300">
               <Check size={16} />
               {success}
             </div>
@@ -167,7 +168,7 @@ function NewTaskModal({
             <button
               type="button"
               onClick={onClose}
-              className="h-10 rounded-lg border border-gray-200 text-sm text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+              className="h-10 rounded-lg border border-slate-200 text-sm text-slate-700 hover:bg-slate-50 disabled:opacity-50 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-700"
               disabled={isLoading}
             >
               Cancelar
@@ -391,173 +392,179 @@ export default function GroupDetailPage() {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-gray-50">
-        <p className="text-gray-600">Cargando grupo...</p>
-      </div>
+      <ProtectedRoute>
+        <div className="flex min-h-screen items-center justify-center bg-slate-50 dark:bg-slate-950">
+          <p className="text-slate-600 dark:text-slate-400">Cargando grupo...</p>
+        </div>
+      </ProtectedRoute>
     );
   }
 
   if (!group || error) {
     return (
-      <div className="p-6 text-black">
-        <Link
-          href="/groups"
-          className="mb-4 inline-flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900"
-        >
-          <ChevronLeft size={16} />
-          Volver a los Grupos
-        </Link>
-        <h1 className="text-2xl font-semibold">{error || "Grupo no encontrado"}</h1>
-      </div>
+      <ProtectedRoute>
+        <div className="min-h-screen bg-slate-50 p-6 text-slate-900 dark:bg-slate-950 dark:text-white">
+          <Link
+            href="/groups"
+            className="mb-4 inline-flex items-center gap-2 text-sm text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
+          >
+            <ChevronLeft size={16} />
+            Volver a los Grupos
+          </Link>
+          <h1 className="text-2xl font-semibold">{error || "Grupo no encontrado"}</h1>
+        </div>
+      </ProtectedRoute>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 text-gray-900 p-8">
-      <div className="max-w-5xl mx-auto">
-        <div className="mb-8 flex items-start justify-between border-b border-gray-200 pb-6">
-          <div>
-            <Link
-              href="/groups"
-              className="mb-3 inline-flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900"
-            >
-              <ChevronLeft size={16} />
-              Volver a los Grupos
-            </Link>
-            <h1 className="text-3xl font-bold text-gray-900">{group.title}</h1>
-            <p className="mt-2 text-gray-600">{group.description}</p>
-          </div>
+    <ProtectedRoute>
+      <div className="min-h-screen bg-slate-50 p-8 text-slate-900 dark:bg-slate-950 dark:text-white">
+        <div className="max-w-5xl mx-auto">
+          <div className="mb-8 flex items-start justify-between border-b border-slate-200 pb-6 dark:border-slate-800">
+            <div>
+              <Link
+                href="/groups"
+                className="mb-3 inline-flex items-center gap-2 text-sm text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
+              >
+                <ChevronLeft size={16} />
+                Volver a los Grupos
+              </Link>
+              <h1 className="text-3xl font-bold text-slate-900 dark:text-white">{group.title}</h1>
+              <p className="mt-2 text-slate-600 dark:text-slate-400">{group.description}</p>
+            </div>
 
-          <button
-            onClick={() => setIsModalOpen(true)}
-            className="rounded-lg bg-red-600 px-6 py-2 text-sm font-medium text-white hover:bg-red-700 transition"
-          >
-            + Nueva Tarea
-          </button>
-        </div>
-
-        <div className="mb-6 flex flex-wrap items-center gap-3 border-b border-gray-200 pb-4">
-          <span className="text-sm font-medium text-gray-700">Filtrar por:</span>
-          {["All", ...groupMembers].map((person, index) => (
             <button
-              key={`filter-${index}`}
-              onClick={() => setSelectedPerson(person)}
-              className={`rounded-lg px-4 py-1.5 text-sm font-medium transition ${
-                selectedPerson === person
-                  ? "bg-red-600 text-white"
-                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-              }`}
+              onClick={() => setIsModalOpen(true)}
+              className="rounded-lg bg-red-600 px-6 py-2 text-sm font-medium text-white hover:bg-red-700 transition"
             >
-              {person === "All" ? "Todas" : person}
+              + Nueva Tarea
             </button>
-          ))}
-        </div>
-
-        <div className="mb-6">
-          <div className="mb-2 flex justify-between text-sm">
-            <span className="font-medium text-gray-700">Progreso</span>
-            <span className="text-gray-600">
-              {completed} de {tasks.length} completadas
-            </span>
           </div>
-          <div className="h-3 w-full rounded-full bg-gray-200 overflow-hidden">
-            <div
-              className="h-3 rounded-full bg-gradient-to-r from-red-500 to-red-600 transition-all duration-300"
-              style={{ width: `${percent}%` }}
-            />
-          </div>
-        </div>
 
-        <div className="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm">
-          {filteredTasks.length === 0 ? (
-            <div className="p-8 text-center">
-              <p className="text-gray-500">
-                {selectedPerson === "All"
-                  ? "No hay tareas en este grupo. ¡Crea una nueva!"
-                  : `No hay tareas asignadas a ${selectedPerson}`}
-              </p>
+          <div className="mb-6 flex flex-wrap items-center gap-3 border-b border-slate-200 pb-4 dark:border-slate-800">
+            <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Filtrar por:</span>
+            {["All", ...groupMembers].map((person, index) => (
+              <button
+                key={`filter-${index}`}
+                onClick={() => setSelectedPerson(person)}
+                className={`rounded-lg px-4 py-1.5 text-sm font-medium transition ${
+                  selectedPerson === person
+                    ? "bg-red-600 text-white"
+                    : "bg-slate-100 text-slate-700 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
+                }`}
+              >
+                {person === "All" ? "Todas" : person}
+              </button>
+            ))}
+          </div>
+
+          <div className="mb-6">
+            <div className="mb-2 flex justify-between text-sm">
+              <span className="font-medium text-slate-700 dark:text-slate-300">Progreso</span>
+              <span className="text-slate-600 dark:text-slate-400">
+                {completed} de {tasks.length} completadas
+              </span>
             </div>
-          ) : (
-            <div className="divide-y divide-gray-100">
-              {filteredTasks.map((task, idx) => {
-                const date = formatDate(task.dueDate);
-                const completedTask = task.status === "completed";
-                const isProcessing = completingTask === task.id;
+            <div className="h-3 w-full overflow-hidden rounded-full bg-slate-200 dark:bg-slate-800">
+              <div
+                className="h-3 rounded-full bg-gradient-to-r from-red-500 to-red-600 transition-all duration-300"
+                style={{ width: `${percent}%` }}
+              />
+            </div>
+          </div>
 
-                return (
-                  <div
-                    key={`task-${task.id}-${idx}`}
-                    className="flex items-center gap-4 p-5 hover:bg-gray-50 transition group"
-                  >
-                    <button
-                      onClick={() => handleToggleTaskStatus(task.id)}
-                      disabled={isProcessing}
-                      className={`shrink-0 h-6 w-6 rounded-full border-2 flex items-center justify-center transition ${
-                        completedTask
-                          ? "border-red-500 bg-red-50"
-                          : "border-gray-300 hover:border-red-500"
-                      } disabled:opacity-50`}
+          <div className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-800">
+            {filteredTasks.length === 0 ? (
+              <div className="p-8 text-center">
+                <p className="text-slate-500 dark:text-slate-400">
+                  {selectedPerson === "All"
+                    ? "No hay tareas en este grupo. ¡Crea una nueva!"
+                    : `No hay tareas asignadas a ${selectedPerson}`}
+                </p>
+              </div>
+            ) : (
+              <div className="divide-y divide-slate-100 dark:divide-slate-700">
+                {filteredTasks.map((task, idx) => {
+                  const date = formatDate(task.dueDate);
+                  const completedTask = task.status === "completed";
+                  const isProcessing = completingTask === task.id;
+
+                  return (
+                    <div
+                      key={`task-${task.id}-${idx}`}
+                      className="group flex items-center gap-4 p-5 transition hover:bg-slate-50 dark:hover:bg-slate-700/50"
                     >
-                      {completedTask && (
-                        <Check size={14} className="text-red-600" />
-                      )}
-                      {isProcessing && (
-                        <Loader2 size={14} className="text-gray-400 animate-spin" />
-                      )}
-                    </button>
-
-                    <div className="flex-1 min-w-0">
-                      <h3
-                        className={`text-sm font-medium transition ${
+                      <button
+                        onClick={() => handleToggleTaskStatus(task.id)}
+                        disabled={isProcessing}
+                        className={`shrink-0 h-6 w-6 rounded-full border-2 flex items-center justify-center transition ${
                           completedTask
-                            ? "text-gray-400 line-through"
-                            : "text-gray-900"
-                        }`}
+                            ? "border-red-500 bg-red-50 dark:bg-red-950/40"
+                            : "border-slate-300 hover:border-red-500 dark:border-slate-600"
+                        } disabled:opacity-50`}
                       >
-                        {task.title}
-                      </h3>
-                      <div className="mt-2 flex flex-wrap items-center gap-4 text-xs text-gray-500">
-                        <span className="inline-flex items-center gap-1">
-                          <UserRound size={13} />
-                          {task.assignee}
-                        </span>
-                        {date && (
-                          <span className="inline-flex items-center gap-1">
-                            <Calendar size={13} />
-                            {date}
-                          </span>
+                        {completedTask && (
+                          <Check size={14} className="text-red-600 dark:text-red-400" />
                         )}
+                        {isProcessing && (
+                          <Loader2 size={14} className="animate-spin text-slate-400" />
+                        )}
+                      </button>
+
+                      <div className="flex-1 min-w-0">
+                        <h3
+                          className={`text-sm font-medium transition ${
+                            completedTask
+                              ? "text-slate-400 line-through dark:text-slate-500"
+                              : "text-slate-900 dark:text-white"
+                          }`}
+                        >
+                          {task.title}
+                        </h3>
+                        <div className="mt-2 flex flex-wrap items-center gap-4 text-xs text-slate-500 dark:text-slate-400">
+                          <span className="inline-flex items-center gap-1">
+                            <UserRound size={13} />
+                            {task.assignee}
+                          </span>
+                          {date && (
+                            <span className="inline-flex items-center gap-1">
+                              <Calendar size={13} />
+                              {date}
+                            </span>
+                          )}
+                        </div>
                       </div>
+
+                      <button
+                        onClick={() => handleDeleteTask(task.id)}
+                        disabled={deletingTask === task.id}
+                        className="shrink-0 rounded px-3 py-1 text-xs text-red-600 opacity-0 transition hover:bg-red-50 group-hover:opacity-100 disabled:opacity-50 dark:text-red-400 dark:hover:bg-red-950/40"
+                      >
+                        {deletingTask === task.id ? (
+                          <Loader2 size={14} className="inline animate-spin" />
+                        ) : (
+                          "Eliminar"
+                        )}
+                      </button>
                     </div>
-
-                    <button
-                      onClick={() => handleDeleteTask(task.id)}
-                      disabled={deletingTask === task.id}
-                      className="shrink-0 opacity-0 group-hover:opacity-100 px-3 py-1 text-xs text-red-600 hover:bg-red-50 rounded transition disabled:opacity-50"
-                    >
-                      {deletingTask === task.id ? (
-                        <Loader2 size={14} className="inline animate-spin" />
-                      ) : (
-                        "Eliminar"
-                      )}
-                    </button>
-                  </div>
-                );
-              })}
-            </div>
-          )}
+                  );
+                })}
+              </div>
+            )}
+          </div>
         </div>
-      </div>
 
-      {isModalOpen && (
-        <NewTaskModal
-          groupTitle={group.title}
-          members={groupMembers}
-          onClose={() => setIsModalOpen(false)}
-          onCreate={handleCreateTask}
-          isLoading={isCreatingTask}
-        />
-      )}
-    </div>
+        {isModalOpen && (
+          <NewTaskModal
+            groupTitle={group.title}
+            members={groupMembers}
+            onClose={() => setIsModalOpen(false)}
+            onCreate={handleCreateTask}
+            isLoading={isCreatingTask}
+          />
+        )}
+      </div>
+    </ProtectedRoute>
   );
 }
