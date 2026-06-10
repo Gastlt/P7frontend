@@ -114,14 +114,16 @@ export async function fetchTaskGroups(): Promise<TaskGroup[]> {
   try {
     const response = await fetch(`${API_BASE_URL}/taskgroups`, {
       method: "GET",
-      headers: { "Content-Type": "application/json" },
+      headers: getAuthHeaders(),
     });
-      if (!response.ok) {
-    const errorBody = await response.text();
-    throw new Error(
-      `Failed to fetch task groups: ${response.status} ${response.statusText} - ${errorBody}`
-    );
-  }
+
+    if (!response.ok) {
+      const errorBody = await response.text();
+      throw new Error(
+        `Failed to fetch task groups: ${response.status} ${response.statusText} - ${errorBody}`
+      );
+    }
+
     return await response.json();
   } catch (error) {
     console.error("Error fetching task groups:", error);

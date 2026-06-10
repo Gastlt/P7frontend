@@ -39,8 +39,14 @@ export type EstimatedHoursKpi = {
 export type Sprint = {
   id: number;
   name: string;
+  groupId?: number;
+  group?: {
+    id: number;
+    name: string;
+  };
   startDate?: string;
   endDate?: string;
+  status?: "planned" | "active" | "completed";
 };
 
 export async function fetchGroups(): Promise<Group[]> {
@@ -103,8 +109,10 @@ export async function fetchEstimatedHoursByUserSprintGroup(
   if (groupId) params.append("groupId", String(groupId));
   if (sprintId) params.append("sprintId", String(sprintId));
 
+  const queryString = params.toString();
+
   const response = await fetch(
-    `${API_BASE_URL}/kpis/hours-by-sprint`,
+    `${API_BASE_URL}/kpis/hours-by-sprint${queryString ? `?${queryString}` : ""}`,
     {
       method: "GET",
       headers: getAuthHeaders(),

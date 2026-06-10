@@ -270,9 +270,9 @@ export default function UserViewPage() {
 
             {/* Error message */}
             {error && (
-              <div className="bg-red-100 text-red-700 p-4 rounded-lg mb-6 flex justify-between items-center">
+              <div className="mb-6 flex items-center justify-between rounded-lg border border-red-200 bg-red-50 p-4 text-red-700 dark:border-red-900/60 dark:bg-red-950/40 dark:text-red-300">
                 <span>{error}</span>
-                <button onClick={() => setError("")} className="text-red-700 hover:text-red-900">
+                <button onClick={() => setError("")} className="text-red-700 hover:text-red-900 dark:text-red-300 dark:hover:text-red-200">
                   <X size={20} />
                 </button>
               </div>
@@ -387,12 +387,12 @@ export default function UserViewPage() {
             {/* Create Task Modal */}
             {showCreateModal && (
               <div className="fixed inset-0 backdrop-blur-sm bg-black/20 flex items-center justify-center z-50">
-                <div className="bg-white rounded-xl p-8 w-full max-w-md max-h-screen overflow-y-auto shadow-xl">
+                <div className="w-full max-w-md max-h-screen overflow-y-auto rounded-xl border border-slate-200 bg-white p-8 shadow-xl dark:border-slate-700 dark:bg-slate-800">
                   <div className="flex justify-between items-center mb-6">
-                    <h2 className="text-2xl text-black font-semibold">Nueva Tarea</h2>
+                    <h2 className="text-2xl text-slate-900 font-semibold dark:text-white">Nueva Tarea</h2>
                     <button
                       onClick={() => setShowCreateModal(false)}
-                      className="text-gray-500 hover:text-gray-700"
+                      className="text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200"
                     >
                       <X size={24} />
                     </button>
@@ -400,14 +400,14 @@ export default function UserViewPage() {
 
                   <form onSubmit={handleCreateTask}>
                     <div className="mb-4">
-                      <label className="text-sm font-medium text-gray-700 block mb-2">
+                      <label className="text-sm font-medium text-slate-700 block mb-2 dark:text-slate-300">
                         Grupo *
                       </label>
                       <select
                         required
                         value={formData.groupId}
                         onChange={(e) => setFormData({ ...formData, groupId: e.target.value })}
-                        className="w-full border rounded-lg px-3 py-2 text-gray-600"
+                        className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-slate-700 outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
                       >
                         <option value="">Selecciona un grupo</option>
                         {groups.map((group) => (
@@ -419,7 +419,7 @@ export default function UserViewPage() {
                     </div>
 
                     <div className="mb-4">
-                      <label className="text-sm font-medium text-gray-700 block mb-2">
+                      <label className="text-sm font-medium text-slate-700 block mb-2 dark:text-slate-300">
                         Título *
                       </label>
                       <input
@@ -428,12 +428,12 @@ export default function UserViewPage() {
                         value={formData.title}
                         onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                         placeholder="Ej: Diseñar nueva página"
-                        className="w-full border rounded-lg px-3 py-2 text-gray-600"
+                        className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-slate-700 outline-none placeholder:text-slate-400 focus:border-red-500 focus:ring-1 focus:ring-red-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:placeholder:text-slate-500"
                       />
                     </div>
 
                     <div className="mb-4">
-                      <label className="text-sm font-medium text-gray-700 block mb-2">
+                      <label className="text-sm font-medium text-slate-700 block mb-2 dark:text-slate-300">
                         Descripción
                       </label>
                       <textarea
@@ -441,18 +441,18 @@ export default function UserViewPage() {
                         onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                         placeholder="Describe los detalles de la tarea..."
                         rows={3}
-                        className="w-full border rounded-lg px-3 py-2 text-gray-600"
+                        className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-slate-700 outline-none placeholder:text-slate-400 focus:border-red-500 focus:ring-1 focus:ring-red-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:placeholder:text-slate-500"
                       />
                     </div>
 
                     <div className="mb-4">
-                      <label className="text-sm font-medium text-gray-700 block mb-2">
+                      <label className="text-sm font-medium text-slate-700 block mb-2 dark:text-slate-300">
                         Prioridad
                       </label>
                       <select
                         value={formData.priority}
                         onChange={(e) => setFormData({ ...formData, priority: e.target.value })}
-                        className="w-full border rounded-lg px-3 py-2 text-gray-600"
+                        className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-slate-700 outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
                       >
                         <option value="low">Baja</option>
                         <option value="medium">Media</option>
@@ -461,7 +461,7 @@ export default function UserViewPage() {
                     </div>
 
                     <div className="mb-4">
-                      <label className="text-sm font-medium text-gray-700 block mb-2">
+                      <label className="text-sm font-medium text-slate-700 block mb-2 dark:text-slate-300">
                         Sprint
                       </label>
                       <input
@@ -469,19 +469,19 @@ export default function UserViewPage() {
                         value={formData.sprint}
                         onChange={(e) => setFormData({ ...formData, sprint: e.target.value })}
                         placeholder="Sprint 1"
-                        className="w-full border rounded-lg px-3 py-2 text-gray-600"
+                        className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-slate-700 outline-none placeholder:text-slate-400 focus:border-red-500 focus:ring-1 focus:ring-red-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:placeholder:text-slate-500"
                       />
                     </div>
 
                     <div className="mb-6">
-                      <label className="text-sm font-medium text-gray-700 block mb-2">
+                      <label className="text-sm font-medium text-slate-700 block mb-2 dark:text-slate-300">
                         Fecha de Vencimiento
                       </label>
                       <input
                         type="date"
                         value={formData.dueDate}
                         onChange={(e) => setFormData({ ...formData, dueDate: e.target.value })}
-                        className="w-full border rounded-lg px-3 py-2 text-gray-600"
+                        className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-slate-700 outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
                       />
                     </div>
 
@@ -489,7 +489,7 @@ export default function UserViewPage() {
                       <button
                         type="button"
                         onClick={() => setShowCreateModal(false)}
-                        className="flex-1 border rounded-lg px-4 py-2 text-gray-700 hover:bg-gray-50"
+                        className="flex-1 rounded-lg border border-slate-300 px-4 py-2 text-slate-700 hover:bg-slate-50 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-700"
                       >
                         Cancelar
                       </button>
@@ -761,25 +761,25 @@ function TaskDetailModal({
 
   return (
     <div className="fixed inset-0 backdrop-blur-sm bg-black/20 flex items-center justify-end z-50">
-      <div className="bg-white rounded-l-xl p-8 w-full max-w-md max-h-screen overflow-y-auto shadow-xl">
+      <div className="w-full max-w-md max-h-screen overflow-y-auto rounded-l-xl border-l border-slate-200 bg-white p-8 shadow-xl dark:border-slate-700 dark:bg-slate-800">
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-xs text-gray-500 font-semibold">#{task.id}</h2>
+          <h2 className="text-xs text-slate-500 font-semibold dark:text-slate-400">#{task.id}</h2>
           <button
             onClick={onClose}
-            className="text-gray-500 hover:text-gray-700"
+            className="text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200"
           >
             <X size={24} />
           </button>
         </div>
 
         {error && (
-          <div className="bg-red-100 text-red-700 p-3 rounded-lg mb-4">
+          <div className="mb-4 rounded-lg border border-red-200 bg-red-50 p-3 text-red-700 dark:border-red-900/60 dark:bg-red-950/40 dark:text-red-300">
             {error}
           </div>
         )}
 
         {success && (
-          <div className="bg-green-100 text-green-700 p-3 rounded-lg mb-4">
+          <div className="mb-4 rounded-lg border border-green-200 bg-green-50 p-3 text-green-700 dark:border-green-900/60 dark:bg-green-950/40 dark:text-green-300">
             ✓ Cambios guardados correctamente
           </div>
         )}
@@ -787,44 +787,44 @@ function TaskDetailModal({
         <div className="space-y-6">
           {/* Title */}
           <div>
-            <label className="text-sm font-medium text-gray-700 block mb-2">
+            <label className="text-sm font-medium text-slate-700 block mb-2 dark:text-slate-300">
               Título
             </label>
             <input
               type="text"
               value={formData.title}
               onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-              className="w-full border rounded-lg px-3 py-2 text-gray-600 font-semibold text-lg"
+              className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-lg font-semibold text-slate-900 outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 dark:border-slate-700 dark:bg-slate-900 dark:text-white"
             />
           </div>
 
           {/* Description */}
           <div>
-            <label className="text-sm font-medium text-gray-700 block mb-2">
+            <label className="text-sm font-medium text-slate-700 block mb-2 dark:text-slate-300">
               Descripción
             </label>
             <textarea
               value={formData.description}
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
               rows={4}
-              className="w-full border rounded-lg px-3 py-2 text-gray-600 bg-gray-50"
+              className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-slate-700 outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
             />
           </div>
 
           {/* Properties */}
           <div>
-            <h4 className="text-sm font-semibold text-gray-700 mb-4">Propiedades</h4>
+            <h4 className="text-sm font-semibold text-slate-700 mb-4 dark:text-slate-300">Propiedades</h4>
 
             <div className="space-y-4">
               {/* Status */}
               <div>
-                <label className="text-sm font-medium text-gray-700 block mb-2">
+                <label className="text-sm font-medium text-slate-700 block mb-2 dark:text-slate-300">
                   Estado
                 </label>
                 <select
                   value={formData.status}
                   onChange={(e) => setFormData({ ...formData, status: e.target.value as "pending" | "in_progress" | "completed" })}
-                  className="w-full border rounded-lg px-3 py-2 text-gray-600"
+                  className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-slate-700 outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
                 >
                   <option value="pending">Pendiente</option>
                   <option value="in_progress">En Progreso</option>
@@ -834,13 +834,13 @@ function TaskDetailModal({
 
               {/* Priority */}
               <div>
-                <label className="text-sm font-medium text-gray-700 block mb-2">
+                <label className="text-sm font-medium text-slate-700 block mb-2 dark:text-slate-300">
                   Prioridad
                 </label>
                 <select
                   value={formData.priority}
                   onChange={(e) => setFormData({ ...formData, priority: e.target.value as "low" | "medium" | "high" })}
-                  className="w-full border rounded-lg px-3 py-2 text-gray-600"
+                  className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-slate-700 outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
                 >
                   <option value="low">Baja</option>
                   <option value="medium">Media</option>
@@ -850,7 +850,7 @@ function TaskDetailModal({
 
               {/* Story Points */}
               <div>
-                <label className="text-sm font-medium text-gray-700 block mb-2">
+                <label className="text-sm font-medium text-slate-700 block mb-2 dark:text-slate-300">
                   Story Points
                 </label>
                 <input
@@ -859,13 +859,13 @@ function TaskDetailModal({
                   onChange={(e) => setFormData({ ...formData, storyPoints: e.target.value })}
                   placeholder="0"
                   min="0"
-                  className="w-full border rounded-lg px-3 py-2 text-gray-600"
+                  className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-slate-700 outline-none placeholder:text-slate-400 focus:border-red-500 focus:ring-1 focus:ring-red-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:placeholder:text-slate-500"
                 />
               </div>
 
               {/* Sprint */}
               <div>
-                <label className="text-sm font-medium text-gray-700 block mb-2">
+                <label className="text-sm font-medium text-slate-700 block mb-2 dark:text-slate-300">
                   Sprint
                 </label>
                 <input
@@ -873,30 +873,30 @@ function TaskDetailModal({
                   value={formData.sprint}
                   onChange={(e) => setFormData({ ...formData, sprint: e.target.value })}
                   placeholder="Sprint 1"
-                  className="w-full border rounded-lg px-3 py-2 text-gray-600"
+                  className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-slate-700 outline-none placeholder:text-slate-400 focus:border-red-500 focus:ring-1 focus:ring-red-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:placeholder:text-slate-500"
                 />
               </div>
 
               {/* Date */}
               <div>
-                <label className="text-sm font-medium text-gray-700 block mb-2">
+                <label className="text-sm font-medium text-slate-700 block mb-2 dark:text-slate-300">
                   Fecha
                 </label>
                 <input
                   type="date"
                   value={formData.dueDate}
                   onChange={(e) => setFormData({ ...formData, dueDate: e.target.value })}
-                  className="w-full border rounded-lg px-3 py-2 text-gray-600"
+                  className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-slate-700 outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
                 />
               </div>
 
               {/* Assigned User (read-only) */}
               {task.assigneeName && (
                 <div>
-                  <label className="text-sm font-medium text-gray-700 block mb-2">
+                  <label className="text-sm font-medium text-slate-700 block mb-2 dark:text-slate-300">
                     Asignado a
                   </label>
-                  <div className="w-full border rounded-lg px-3 py-2 text-gray-600 bg-gray-50">
+                  <div className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-slate-600 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300">
                     {task.assigneeName}
                   </div>
                 </div>
@@ -905,10 +905,10 @@ function TaskDetailModal({
               {/* Group (read-only) */}
               {task.groupName && (
                 <div>
-                  <label className="text-sm font-medium text-gray-700 block mb-2">
+                  <label className="text-sm font-medium text-slate-700 block mb-2 dark:text-slate-300">
                     Grupo
                   </label>
-                  <div className="w-full border rounded-lg px-3 py-2 text-gray-600 bg-gray-50">
+                  <div className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-slate-600 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300">
                     {task.groupName}
                   </div>
                 </div>
@@ -917,10 +917,10 @@ function TaskDetailModal({
               {/* Todo List (read-only) */}
               {task.todoListName && (
                 <div>
-                  <label className="text-sm font-medium text-gray-700 block mb-2">
+                  <label className="text-sm font-medium text-slate-700 block mb-2 dark:text-slate-300">
                     Lista
                   </label>
-                  <div className="w-full border rounded-lg px-3 py-2 text-gray-600 bg-gray-50">
+                  <div className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-slate-600 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300">
                     {task.todoListName}
                   </div>
                 </div>
@@ -933,7 +933,7 @@ function TaskDetailModal({
         <div className="flex gap-3 mt-8">
           <button
             onClick={onClose}
-            className="flex-1 border rounded-lg px-4 py-2 text-gray-700 hover:bg-gray-50"
+            className="flex-1 rounded-lg border border-slate-300 px-4 py-2 text-slate-700 hover:bg-slate-50 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-700"
           >
             Cancelar
           </button>
