@@ -33,6 +33,12 @@ import {
   type Sprint,
 } from "./dashboardData";
 import { useTheme } from "@/lib/theme-context";
+import { getUser } from "@/lib/session";
+
+import {
+    fetchMyGroupMembers,
+    fetchTaskGroups,
+} from "@/lib/groupsData";
 
 const CHART_COLORS = [
   "#ef4444", // red
@@ -62,25 +68,68 @@ export default function DashboardPage() {
   const [hoursData, setHoursData] = useState<EstimatedHoursKpi[]>([]);
 
   useEffect(() => {
-    async function loadGroups() {
-      try {
-        const data = await fetchGroups();
-        setGroups(data);
+  async function loadGroups() {
+    try {
+      setLoading(true);
 
-        if (data.length > 0) {
-          setSelectedGroupId(data[0].id);
-        }
-      } catch (error) {
-        console.error("Error loading groups:", error);
+      const [allGroups, myMemberships] = await Promise.all([
+        fetchTaskGroups(),
+        fetchMyGroupMembers(),
+      ]);
+
+      const myGroupIds = new Set(
+        myMemberships
+          .map((member) => member.groupId ?? member.group?.id)
+          .filter((id): id is number => typeof id === "number")
+      );
+
+      const visibleGroups = allGroups.filter((group) =>
+        myGroupIds.has(group.id)
+      );
+
+      const mappedGroups = visibleGroups.map((group) => ({
+        id: group.id,
+        name: group.name,
+      }));
+
+      setGroups(mappedGroups);
+
+      if (mappedGroups.length === 0) {
+        setSelectedGroupId(undefined);
+        setSelectedSprintId(undefined);
+        setSprints([]);
+        setKpiData([]);
+        setHoursData([]);
+        setLoading(false);
+        return;
       }
+
+      setSelectedGroupId(mappedGroups[0].id);
+    } catch (error) {
+      console.error("Error loading groups:", error);
+
+      setGroups([]);
+      setSprints([]);
+      setSelectedGroupId(undefined);
+      setSelectedSprintId(undefined);
+      setKpiData([]);
+      setHoursData([]);
+    } finally {
+      setLoading(false);
     }
+  }
 
-    loadGroups();
-  }, []);
+  loadGroups();
+}, []);
 
-  useEffect(() => {
+useEffect(() => {
   async function loadKpis() {
-    if (!selectedGroupId) return;
+    if (!selectedGroupId) {
+      setKpiData([]);
+      setHoursData([]);
+      setLoading(false);
+      return;
+    }
 
     try {
       setLoading(true);
@@ -94,6 +143,8 @@ export default function DashboardPage() {
       setHoursData(hoursResult);
     } catch (error) {
       console.error("Error loading KPIs:", error);
+      setKpiData([]);
+      setHoursData([]);
     } finally {
       setLoading(false);
     }
@@ -102,18 +153,32 @@ export default function DashboardPage() {
   loadKpis();
 }, [selectedGroupId, selectedSprintId]);
 
-  useEffect(() => {
+useEffect(() => {
   async function loadSprints() {
     try {
+      if (groups.length === 0) {
+        setSprints([]);
+        return;
+      }
+
       const data = await fetchSprints();
-      setSprints(data);
+
+      const visibleGroupIds = new Set(groups.map((group) => group.id));
+
+      const visibleSprints = data.filter((sprint) => {
+        const sprintGroupId = sprint.groupId ?? sprint.group?.id;
+        return sprintGroupId != null && visibleGroupIds.has(sprintGroupId);
+      });
+
+      setSprints(visibleSprints);
     } catch (error) {
       console.error("Error loading sprints:", error);
+      setSprints([]);
     }
   }
 
   loadSprints();
-  }, []);
+}, [groups]);
 
   const selectedGroup = groups.find((g) => g.id === selectedGroupId);
 
