@@ -99,9 +99,6 @@ type SprintWithGroup = Sprint & {
 };
 
 export default function SprintsPage() {
-  const sessionUser = getUser();
-  const canCreateSprint = sessionUser?.role === "SUPERADMIN";
-
   const [groups, setGroups] = useState<TaskGroup[]>([]);
   const [sprints, setSprints] = useState<SprintWithGroup[]>([]);
   const [tasks, setTasks] = useState<Task[]>([]);
@@ -112,6 +109,7 @@ export default function SprintsPage() {
   const [showCreateSprint, setShowCreateSprint] = useState(false);
   const [creatingSprint, setCreatingSprint] = useState(false);
   const [createSprintError, setCreateSprintError] = useState("");
+  const [canCreateSprint, setCanCreateSprint] = useState(false);
   
 
   const [sprintForm, setSprintForm] = useState({
@@ -120,6 +118,11 @@ export default function SprintsPage() {
   startDate: "",
   endDate: "",
 });
+
+  useEffect(() => {
+    const sessionUser = getUser();
+    setCanCreateSprint(sessionUser?.role === "SUPERADMIN");
+  }, []);
 
   const loadData = async () => {
     try {

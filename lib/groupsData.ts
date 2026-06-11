@@ -881,3 +881,46 @@ export async function fetchSprints(): Promise<Sprint[]> {
 
   return response.json();
 }
+
+export type CreateTodoListPayload = {
+  name: string;
+  groupId: number;
+  createdById?: number;
+};
+
+export async function createTodoList(
+  payload: CreateTodoListPayload
+): Promise<TodoList> {
+  const token = localStorage.getItem("token");
+
+  const body = {
+    name: payload.name,
+    group: {
+      id: payload.groupId,
+    },
+    ...(payload.createdById
+      ? {
+          createdBy: {
+            id: payload.createdById,
+          },
+        }
+      : {}),
+  };
+
+  const response = await fetch(`${API_BASE_URL}/todolists`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(body),
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    console.error("Error creating todo list:", errorText);
+    throw new Error("Error al crear la lista");
+  }
+
+  return response.json();
+}
