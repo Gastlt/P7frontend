@@ -13,6 +13,8 @@ import { GroupTask,
      fetchTodoListsByGroupId,
      createGroupMember,
      createTaskAssignment,
+     deleteTaskAssignment,
+     deleteTaskAssignmentByTaskAndUser,
      User, } from "@/lib/groupsData";
 import Link from "next/link";
 import NewTaskModal, {
@@ -46,6 +48,21 @@ export default function GroupDetailPage() {
   const [showCreateList, setShowCreateList] = useState(false);
   const [creatingList, setCreatingList] = useState(false);
   const [createListError, setCreateListError] = useState("");
+  const [editingTask, setEditingTask] = useState<GroupTask | null>(null);
+  const [isUpdatingTask, setIsUpdatingTask] = useState(false);
+  const [editTaskError, setEditTaskError] = useState("");
+  const [originalEditAssigneeIds, setOriginalEditAssigneeIds] = useState<number[]>([]);
+
+const [editTaskForm, setEditTaskForm] = useState({
+  title: "",
+  description: "",
+  priority: "medium" as "low" | "medium" | "high",
+  status: "pending" as "pending" | "in_progress" | "completed",
+  dueDate: "",
+  estimatedHours: "",
+  listId: "",
+  assigneeIds: [] as number[],
+});
 
   const [listForm, setListForm] = useState({
   name: "",
@@ -110,6 +127,157 @@ export default function GroupDetailPage() {
       day: "2-digit",
     }).format(new Date(date));
   };
+
+ const openEditTaskModal = (task: GroupTask) => {
+  setEditingTask(task);
+  setEditTaskError("");
+
+  const assigneeNames = task.assignee
+    ? task.assignee.split(",").map((name) => name.trim())
+    : [];
+
+  const currentAssigneeIds = users
+    .filter((user) => assigneeNames.includes(user.name))
+    .map((user) => user.id);
+
+  setOriginalEditAssigneeIds(currentAssigneeIds);
+
+  setEditTaskForm({
+    title: task.title || "",
+    description: task.description || "",
+    priority: task.priority || "medium",
+    status: task.status || "pending",
+    dueDate: task.dueDate ? task.dueDate.slice(0, 10) : "",
+    estimatedHours:
+      task.estimatedHours != null ? String(task.estimatedHours) : "",
+    listId: task.listId != null ? String(task.listId) : "",
+    assigneeIds: currentAssigneeIds,
+  });
+};
+
+const toggleEditAssignee = (userId: number) => {
+  setEditTaskForm((current) => {
+    const alreadySelected = current.assigneeIds.includes(userId);
+
+    return {
+      ...current,
+      assigneeIds: alreadySelected
+        ? current.assigneeIds.filter((id) => id !== userId)
+        : [...current.assigneeIds, userId],
+    };
+  });
+};
+
+const handleUpdateTask = async (e: React.FormEvent<HTMLFormElement>) => {
+  e.preventDefault();
+
+  if (!editingTask) return;
+
+  try {
+    setIsUpdatingTask(true);
+    setEditTaskError("");
+
+    if (!editTaskForm.title.trim()) {
+      setEditTaskError("El título de la tarea es obligatorio.");
+      return;
+    }
+
+    const estimatedHoursValue =
+      editTaskForm.estimatedHours.trim() === ""
+        ? null
+        : Number(editTaskForm.estimatedHours);
+
+    const listIdValue = editTaskForm.listId
+      ? Number(editTaskForm.listId)
+      : editingTask.listId;
+
+    const updatedTask = await updateTask(editingTask.id, {
+      title: editTaskForm.title.trim(),
+      description: editTaskForm.description.trim() || undefined,
+      priority: editTaskForm.priority,
+      status: editTaskForm.status,
+      dueDate: editTaskForm.dueDate
+        ? `${editTaskForm.dueDate}T00:00:00`
+        : undefined,
+      estimatedHours: estimatedHoursValue,
+      listId: listIdValue,
+    });
+
+    if (!updatedTask) {
+      setEditTaskError("No se pudo actualizar la tarea.");
+      return;
+    }
+
+    const selectedAssigneeIds = editTaskForm.assigneeIds;
+
+const assigneeIdsToAdd = selectedAssigneeIds.filter(
+  (id) => !originalEditAssigneeIds.includes(id)
+);
+
+const assigneeIdsToDelete = originalEditAssigneeIds.filter(
+  (id) => !selectedAssigneeIds.includes(id)
+);
+
+const deleteResults = await Promise.all(
+  assigneeIdsToDelete.map((userId) =>
+    deleteTaskAssignmentByTaskAndUser(editingTask.id, userId)
+  )
+);
+
+const addResults = await Promise.all(
+  assigneeIdsToAdd.map((userId) =>
+    createTaskAssignment(editingTask.id, userId)
+  )
+);
+
+if (deleteResults.some((result) => result === false)) {
+  setEditTaskError(
+    "La tarea se actualizó, pero no se pudieron eliminar algunos asignados."
+  );
+  return;
+}
+
+if (addResults.some((result) => result === null)) {
+  setEditTaskError(
+    "La tarea se actualizó, pero no se pudieron agregar algunos asignados."
+  );
+  return;
+}
+
+    setTasks((currentTasks) =>
+      currentTasks.map((task): GroupTask => {
+        if (task.id !== editingTask.id) {
+          return task;
+        }
+
+        const selectedList = todoLists.find(
+          (list) => list.id === listIdValue
+        );
+
+        return {
+          ...task,
+          title: editTaskForm.title.trim(),
+          description: editTaskForm.description.trim() || "",
+          priority: editTaskForm.priority,
+          status: editTaskForm.status,
+          dueDate: editTaskForm.dueDate
+            ? `${editTaskForm.dueDate}T00:00:00`
+            : null,
+          estimatedHours: estimatedHoursValue,
+          listId: listIdValue,
+          todoListName: selectedList?.name ?? task.todoListName,
+        };
+      })
+    );
+
+    setEditingTask(null);
+  } catch (err) {
+    console.error("Error updating task:", err);
+    setEditTaskError("Error al guardar los cambios.");
+  } finally {
+    setIsUpdatingTask(false);
+  }
+};
 
   const handleCreateTodoList = async (e: React.FormEvent<HTMLFormElement>) => {
   e.preventDefault();
@@ -221,6 +389,7 @@ setTodoLists((current) => [...current, createdList]);
     setIsCreatingTask(false);
   }
 };
+
 
   const handleAddMember = async (userId: number) => {
     try {
@@ -379,7 +548,14 @@ setTodoLists((current) => [...current, createdList]);
                     + Nueva Tarea
                 </button>
                 <button
-                  onClick={() => setShowCreateList(true)}
+                   onClick={() => {
+                      setListForm({
+                        name: "",
+                        groupId: String(group.id),
+                      });
+                      setCreateListError("");
+                      setShowCreateList(true);
+                    }}
                   className="rounded-lg bg-red-600 px-6 py-2 text-sm font-medium text-white hover:bg-red-700 transition"
                 >
                   + Nueva lista
@@ -438,10 +614,14 @@ setTodoLists((current) => [...current, createdList]);
                 return (
                   <div
                     key={`task-${task.id}-${idx}`}
-                    className="group flex items-center gap-4 p-5 transition hover:bg-slate-50 dark:hover:bg-slate-700/50"
+                    onClick={() => openEditTaskModal(task)}
+                    className="flex cursor-pointer items-center gap-4 p-5 hover:bg-gray-50 transition group"
                   >
                     <button
-                      onClick={() => handleToggleTaskStatus(task.id)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleToggleTaskStatus(task.id);
+                        }}
                       disabled={isProcessing}
                       className={`shrink-0 h-6 w-6 rounded-full border-2 flex items-center justify-center transition ${
                         completedTask
@@ -482,7 +662,10 @@ setTodoLists((current) => [...current, createdList]);
                     </div>
 
                     <button
-                      onClick={() => handleDeleteTask(task.id)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDeleteTask(task.id);
+                        }}
                       disabled={deletingTask === task.id}
                       className="shrink-0 rounded px-3 py-1 text-xs text-red-600 opacity-0 transition hover:bg-red-50 group-hover:opacity-100 disabled:opacity-50 dark:text-red-300 dark:hover:bg-red-950/40"
                     >
@@ -572,6 +755,247 @@ setTodoLists((current) => [...current, createdList]);
           </div>
         </div>
       )}
+
+      {editingTask && (
+  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
+    <div className="w-full max-w-lg rounded-2xl border border-gray-200 bg-white p-6 shadow-xl">
+      <div className="mb-5 flex items-start justify-between gap-4">
+        <div>
+          <h2 className="text-lg font-semibold text-gray-900">
+            Editar tarea
+          </h2>
+          <p className="mt-1 text-sm text-gray-500">
+            Actualiza la información de la tarea seleccionada.
+          </p>
+        </div>
+
+        <button
+          type="button"
+          onClick={() => {
+            setEditingTask(null);
+            setEditTaskError("");
+          }}
+          className="rounded-lg p-2 text-gray-500 transition hover:bg-gray-100"
+        >
+          ×
+        </button>
+      </div>
+
+      {editTaskError && (
+        <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          {editTaskError}
+        </div>
+      )}
+
+      <form onSubmit={handleUpdateTask} className="space-y-4">
+        <div>
+          <label className="mb-1 block text-sm font-medium text-gray-700">
+            Título
+          </label>
+          <input
+            type="text"
+            value={editTaskForm.title}
+            onChange={(e) =>
+              setEditTaskForm((current) => ({
+                ...current,
+                title: e.target.value,
+              }))
+            }
+            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 outline-none transition focus:border-red-500 focus:ring-1 focus:ring-red-500"
+          />
+        </div>
+
+        <div>
+          <label className="mb-1 block text-sm font-medium text-gray-700">
+            Descripción
+          </label>
+          <textarea
+            value={editTaskForm.description}
+            onChange={(e) =>
+              setEditTaskForm((current) => ({
+                ...current,
+                description: e.target.value,
+              }))
+            }
+            rows={3}
+            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 outline-none transition focus:border-red-500 focus:ring-1 focus:ring-red-500"
+          />
+        </div>
+
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div>
+            <label className="mb-1 block text-sm font-medium text-gray-700">
+              Prioridad
+            </label>
+            <select
+              value={editTaskForm.priority}
+              onChange={(e) =>
+                setEditTaskForm((current) => ({
+                  ...current,
+                  priority: e.target.value as "low" | "medium" | "high",
+                }))
+              }
+              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 outline-none transition focus:border-red-500 focus:ring-1 focus:ring-red-500"
+            >
+              <option value="low">Baja</option>
+              <option value="medium">Media</option>
+              <option value="high">Alta</option>
+            </select>
+          </div>
+
+          <div>
+            <label className="mb-1 block text-sm font-medium text-gray-700">
+              Estado
+            </label>
+            <select
+              value={editTaskForm.status}
+              onChange={(e) =>
+                setEditTaskForm((current) => ({
+                  ...current,
+                  status: e.target.value as
+                    | "pending"
+                    | "in_progress"
+                    | "completed",
+                }))
+              }
+              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 outline-none transition focus:border-red-500 focus:ring-1 focus:ring-red-500"
+            >
+              <option value="pending">Pendiente</option>
+              <option value="in_progress">En progreso</option>
+              <option value="completed">Completada</option>
+            </select>
+          </div>
+        </div>
+
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div>
+            <label className="mb-1 block text-sm font-medium text-gray-700">
+              Fecha límite
+            </label>
+            <input
+              type="date"
+              value={editTaskForm.dueDate}
+              onChange={(e) =>
+                setEditTaskForm((current) => ({
+                  ...current,
+                  dueDate: e.target.value,
+                }))
+              }
+              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 outline-none transition focus:border-red-500 focus:ring-1 focus:ring-red-500"
+            />
+          </div>
+
+          <div>
+            <label className="mb-1 block text-sm font-medium text-gray-700">
+              Horas estimadas
+            </label>
+            <input
+              type="number"
+              min="0"
+              step="0.5"
+              value={editTaskForm.estimatedHours}
+              onChange={(e) =>
+                setEditTaskForm((current) => ({
+                  ...current,
+                  estimatedHours: e.target.value,
+                }))
+              }
+              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 outline-none transition focus:border-red-500 focus:ring-1 focus:ring-red-500"
+            />
+          </div>
+        </div>
+
+        <div>
+          <label className="mb-1 block text-sm font-medium text-gray-700">
+            Lista
+          </label>
+          <select
+            value={editTaskForm.listId}
+            onChange={(e) =>
+              setEditTaskForm((current) => ({
+                ...current,
+                listId: e.target.value,
+              }))
+            }
+            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 outline-none transition focus:border-red-500 focus:ring-1 focus:ring-red-500"
+          >
+            <option value="">Mantener lista actual</option>
+            {todoLists.map((list) => (
+              <option key={list.id} value={list.id}>
+                {list.name}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div>
+  <div className="mb-1 flex items-center justify-between">
+    <label className="block text-sm font-medium text-gray-700">
+      Asignar a *
+    </label>
+
+    <span className="text-xs text-gray-500">
+      {editTaskForm.assigneeIds.length} seleccionados
+    </span>
+  </div>
+
+  <div className="overflow-hidden rounded-lg border border-gray-300 bg-white">
+    {users
+      .filter((user) => group.members.includes(user.name))
+      .map((user) => {
+        const checked = editTaskForm.assigneeIds.includes(user.id);
+
+        return (
+          <label
+            key={user.id}
+            className="flex cursor-pointer items-center gap-3 border-b border-gray-100 px-3 py-3 last:border-b-0 hover:bg-gray-50"
+          >
+            <input
+              type="checkbox"
+              checked={checked}
+              onChange={() => toggleEditAssignee(user.id)}
+              className="h-4 w-4 rounded border-gray-300 text-red-600 focus:ring-red-500"
+            />
+
+            <div>
+              <p className="text-sm font-medium text-gray-900">
+                {user.name}
+              </p>
+              <p className="text-xs text-gray-500">
+                {user.email}
+              </p>
+            </div>
+          </label>
+        );
+      })}
+  </div>
+</div>
+
+        <div className="flex justify-end gap-2 pt-2">
+          <button
+            type="button"
+            onClick={() => {
+              setEditingTask(null);
+              setEditTaskError("");
+            }}
+            className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
+          >
+            Cancelar
+          </button>
+
+          <button
+            type="submit"
+            disabled={isUpdatingTask}
+            className="inline-flex items-center gap-2 rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-70"
+          >
+            {isUpdatingTask && <Loader2 size={16} className="animate-spin" />}
+            {isUpdatingTask ? "Guardando..." : "Guardar cambios"}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+)}
 
       {isModalOpen && (
         <NewTaskModal

@@ -338,7 +338,7 @@ export async function fetchToDoItemById(id: number): Promise<ToDoItem | null> {
 
 // ========== Convenience Derived Types ==========
 
-export type GroupTaskStatus = "pending" | "completed";
+export type GroupTaskStatus = "pending" | "in_progress" | "completed";
 export type GroupTask = {
   id: number;
   title: string;
@@ -627,28 +627,39 @@ export async function createTask(task: {
 /**
  * Update a task
  */
+export type UpdateTaskPayload = {
+  title?: string;
+  description?: string | null;
+  status?: "pending" | "in_progress" | "completed";
+  priority?: "low" | "medium" | "high";
+  startDate?: string | null;
+  endDate?: string | null;
+  dueDate?: string | null;
+  estimatedHours?: number | null;
+  actualHours?: number | null;
+  listId?: number;
+  sprintId?: number | null;
+};
+
 export async function updateTask(
   taskId: number,
-  updates: Partial<{
-    title: string;
-    description: string;
-    status: "pending" | "completed";
-    priority: "low" | "medium" | "high";
-    dueDate: string;
-  }>
-): Promise<Task | null> {
-  try {
-    const response = await fetch(`${API_BASE_URL}/tasks/${taskId}`, {
-      method: "PUT",
-      headers: getAuthHeaders(),
-      body: JSON.stringify(updates),
-    });
-    if (!response.ok) throw new Error(`Failed to update task: ${response.statusText}`);
-    return await response.json();
-  } catch (error) {
-    console.error(`Error updating task ${taskId}:`, error);
+  taskData: UpdateTaskPayload
+) {
+  const token = localStorage.getItem("token");
+
+  const response = await fetch(`${API_BASE_URL}/tasks/${taskId}`, {
+    method: "PUT",
+    headers: getAuthHeaders(),
+    body: JSON.stringify(taskData),
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    console.error("Error updating task:", errorText);
     return null;
   }
+
+  return response.json();
 }
 
 /**
@@ -659,7 +670,7 @@ export async function deleteTask(taskId: number): Promise<boolean> {
     console.log(`Deleting task ${taskId}...`);
     const response = await fetch(`${API_BASE_URL}/tasks/${taskId}`, {
       method: "DELETE",
-      headers: { "Content-Type": "application/json" },
+      headers: getAuthHeaders(),
     });
     
     console.log(`Delete response status: ${response.status}`);
@@ -726,12 +737,41 @@ export async function deleteTaskAssignment(assignmentId: number): Promise<boolea
   try {
     const response = await fetch(`${API_BASE_URL}/task-assignments/${assignmentId}`, {
       method: "DELETE",
-      headers: { "Content-Type": "application/json" },
+      headers: getAuthHeaders(),
     });
     if (!response.ok) throw new Error(`Failed to delete task assignment: ${response.statusText}`);
     return true;
   } catch (error) {
     console.error(`Error deleting task assignment ${assignmentId}:`, error);
+    return false;
+  }
+}
+
+export async function deleteTaskAssignmentByTaskAndUser(
+  taskId: number,
+  userId: number
+): Promise<boolean> {
+  try {
+    const response = await fetch(
+      `${API_BASE_URL}/task-assignments/task/${taskId}/user/${userId}`,
+      {
+        method: "DELETE",
+        headers: getAuthHeaders(),
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(
+        `Failed to delete task assignment by task and user: ${response.statusText}`
+      );
+    }
+
+    return true;
+  } catch (error) {
+    console.error(
+      `Error deleting task assignment for task ${taskId} and user ${userId}:`,
+      error
+    );
     return false;
   }
 }
