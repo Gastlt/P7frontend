@@ -9,6 +9,7 @@ import { GroupTask,
      updateTask, 
      deleteTask, 
      fetchUsers, 
+     createTodoList,
      fetchTodoListsByGroupId,
      createGroupMember,
      createTaskAssignment,
@@ -20,6 +21,7 @@ import NewTaskModal, {
 import AddMemberModal from "@/components/AddMemberModal";
 import { useParams } from "next/navigation";
 import type { TodoList } from "@/lib/groupsData";
+import { getUser } from "@/lib/session";
 
 // MODAL DE NUEVA TAREA
 
@@ -41,6 +43,14 @@ export default function GroupDetailPage() {
   const [isAddMemberModalOpen, setIsAddMemberModalOpen] = useState(false);
   const [isAddingMember, setIsAddingMember] = useState(false);
   const [todoLists, setTodoLists] = useState<TodoList[]>([]);
+  const [showCreateList, setShowCreateList] = useState(false);
+  const [creatingList, setCreatingList] = useState(false);
+  const [createListError, setCreateListError] = useState("");
+
+  const [listForm, setListForm] = useState({
+  name: "",
+  groupId: "",
+  });
 
   // Load data on mount
   useEffect(() => {
@@ -100,6 +110,48 @@ export default function GroupDetailPage() {
       day: "2-digit",
     }).format(new Date(date));
   };
+
+  const handleCreateTodoList = async (e: React.FormEvent<HTMLFormElement>) => {
+  e.preventDefault();
+
+  try {
+    setCreatingList(true);
+    setCreateListError("");
+
+    if (!listForm.name.trim()) {
+      setCreateListError("El nombre de la lista es obligatorio.");
+      return;
+    }
+
+    if (!listForm.groupId) {
+      setCreateListError("Selecciona un grupo.");
+      return;
+    }
+
+    const sessionUser = getUser();
+
+  const createdList = await createTodoList({
+    name: listForm.name.trim(),
+    groupId: Number(listForm.groupId),
+    createdById: sessionUser?.userId,
+});
+
+setTodoLists((current) => [...current, createdList]);
+
+    setListForm({
+      name: "",
+      groupId: "",
+    });
+
+    setShowCreateList(false);
+
+  } catch (err) {
+    console.error("Error creating todo list:", err);
+    setCreateListError("No se pudo crear la lista.");
+  } finally {
+    setCreatingList(false);
+  }
+};
 
   const handleCreateTask = async (task: NewTaskPayload) => {
   try {
@@ -326,6 +378,12 @@ export default function GroupDetailPage() {
                 >
                     + Nueva Tarea
                 </button>
+                <button
+                  onClick={() => setShowCreateList(true)}
+                  className="rounded-lg bg-red-600 px-6 py-2 text-sm font-medium text-white hover:bg-red-700 transition"
+                >
+                  + Nueva lista
+                </button>
             </div>
         </div>
 
@@ -441,6 +499,79 @@ export default function GroupDetailPage() {
           )}
         </div>
       </div>
+
+      {showCreateList && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
+          <div className="w-full max-w-md rounded-2xl border border-gray-200 bg-white p-6 shadow-xl">
+            <div className="mb-5">
+              <h2 className="text-lg font-semibold text-gray-900">
+                Crear lista
+              </h2>
+              <p className="mt-1 text-sm text-gray-500">
+                Crea una nueva lista de tareas para este grupo.
+              </p>
+            </div>
+
+            {createListError && (
+              <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                {createListError}
+              </div>
+            )}
+
+            <form onSubmit={handleCreateTodoList} className="space-y-4">
+              <div>
+                <label className="mb-1 block text-sm font-medium text-gray-700">
+                  Nombre de la lista
+                </label>
+
+                <input
+                  type="text"
+                  value={listForm.name}
+                  onChange={(e) =>
+                    setListForm((current) => ({
+                      ...current,
+                      name: e.target.value,
+                      groupId: String(group.id),
+                    }))
+                  }
+                  placeholder="Ej. Backlog, Pendientes, General"
+                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 outline-none transition focus:border-red-500 focus:ring-1 focus:ring-red-500"
+                />
+              </div>
+
+              <div className="rounded-lg bg-gray-50 px-3 py-2 text-sm text-gray-600">
+                Grupo: <span className="font-medium text-gray-900">{group.title}</span>
+              </div>
+
+              <div className="flex justify-end gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowCreateList(false);
+                    setCreateListError("");
+                    setListForm({
+                      name: "",
+                      groupId: "",
+                    });
+                  }}
+                  className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
+                >
+                  Cancelar
+                </button>
+
+                <button
+                  type="submit"
+                  disabled={creatingList}
+                  className="inline-flex items-center gap-2 rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-70"
+                >
+                  {creatingList && <Loader2 size={16} className="animate-spin" />}
+                  {creatingList ? "Creando..." : "Crear lista"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       {isModalOpen && (
         <NewTaskModal
