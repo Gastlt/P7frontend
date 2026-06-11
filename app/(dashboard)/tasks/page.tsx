@@ -737,15 +737,15 @@ function TaskDetailModal({
       // Call API to update task
       const storyPointsValue = formData.storyPoints ? parseInt(String(formData.storyPoints), 10) : null;
 
-      const updatedTask = await updateTask(task.id, {
-        title: formData.title,
-        description: formData.description || null,
-        priority: formData.priority as "low" | "medium" | "high",
-        storyPoints: storyPointsValue,
-        sprint: formData.sprint || null,
-        dueDate: formData.dueDate ? `${formData.dueDate}T00:00:00` : null,
-        status: formData.status as "pending" | "in_progress" | "completed",
-      } as Partial<TaskDTO>);
+     const updatedTask = await updateTask(task.id, {
+      title: formData.title,
+      description: formData.description || null,
+      priority: formData.priority as "low" | "medium" | "high",
+      estimatedHours: storyPointsValue,
+      sprintId: formData.sprint ? Number(formData.sprint) : null,
+      dueDate: formData.dueDate ? `${formData.dueDate}T00:00:00` : null,
+      status: formData.status as "pending" | "in_progress" | "completed",
+    });
 
       setSuccess(true);
       setTimeout(() => {

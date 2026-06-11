@@ -838,6 +838,31 @@ export type Sprint = {
   createdAt?: string;
 };
 
+export type CreateSprintPayload = {
+  name: string;
+  startDate: string;
+  endDate: string;
+  groupId: number;
+};
+
+export async function createSprint(payload: CreateSprintPayload): Promise<Sprint> {
+  const token = localStorage.getItem("token");
+
+  const response = await fetch(`${API_BASE_URL}/sprints`, {
+    method: "POST",
+    headers: getAuthHeaders(),
+    body: JSON.stringify(payload),
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    console.error("Error creating sprint:", errorText);
+    throw new Error("Error al crear el sprint");
+  }
+
+  return response.json();
+}
+
 export async function fetchSprints(): Promise<Sprint[]> {
   const response = await fetch(`${API_BASE_URL}/sprints`, {
     method: "GET",
