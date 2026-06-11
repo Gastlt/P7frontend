@@ -289,10 +289,6 @@ useEffect(() => {
             ))}
           </select>
 
-          <button className="inline-flex items-center justify-center gap-2 rounded-xl bg-red-500 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-red-600">
-            <Download size={16} />
-            Exportar Reporte
-          </button>
         </div>
       </div>
 
