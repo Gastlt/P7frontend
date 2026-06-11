@@ -99,44 +99,44 @@ export default function NewTaskModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
-      <div className="w-full max-w-md rounded-lg bg-white p-6 shadow-xl">
-        <h2 className="text-xl font-semibold text-gray-900">
+      <div className="w-full max-w-md rounded-lg border border-slate-200 bg-white p-6 shadow-xl dark:border-slate-700 dark:bg-slate-800">
+        <h2 className="text-xl font-semibold text-slate-900 dark:text-white">
           Crear Nueva Tarea
         </h2>
 
-        <p className="mt-1 text-gray-500">
+        <p className="mt-1 text-slate-500 dark:text-slate-400">
           Agrega una tarea a {groupTitle}
         </p>
 
         <form onSubmit={handleSubmit} className="mt-6 space-y-4">
           <div>
-            <label className="mb-2 block text-sm font-medium text-gray-700">
+            <label className="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-300">
               Título de la Tarea *
             </label>
             <input
               value={title}
               onChange={(event) => setTitle(event.target.value)}
               placeholder="Ej: Implementar dashboard"
-              className="h-10 w-full rounded-lg border border-gray-300 px-3 text-sm text-gray-900 outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500"
+              className="h-10 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm text-slate-900 outline-none placeholder:text-slate-400 focus:border-red-500 focus:ring-1 focus:ring-red-500 dark:border-slate-600 dark:bg-slate-900 dark:text-white dark:placeholder:text-slate-500"
               disabled={isLoading}
             />
           </div>
 
           <div>
-            <label className="mb-2 block text-sm font-medium text-gray-700">
+            <label className="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-300">
               Descripción
             </label>
             <textarea
               value={description}
               onChange={(event) => setDescription(event.target.value)}
               placeholder="Añade más detalles"
-              className="h-20 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500"
+              className="h-20 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none placeholder:text-slate-400 focus:border-red-500 focus:ring-1 focus:ring-red-500 dark:border-slate-600 dark:bg-slate-900 dark:text-white dark:placeholder:text-slate-500"
               disabled={isLoading}
             />
           </div>
 
           <div>
-            <label className="mb-2 block text-sm font-medium text-gray-700">
+            <label className="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-300">
               Lista *
             </label>
             <select
@@ -144,7 +144,7 @@ export default function NewTaskModal({
               onChange={(event) =>
                 setListId(event.target.value ? Number(event.target.value) : "")
               }
-              className="h-10 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-900 outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500"
+              className="h-10 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm text-slate-900 outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 dark:border-slate-600 dark:bg-slate-900 dark:text-white"
               disabled={isLoading || todoLists.length === 0}
             >
               <option value="">
@@ -163,16 +163,16 @@ export default function NewTaskModal({
 
           <div>
             <div className="mb-2 flex items-center justify-between">
-              <label className="block text-sm font-medium text-gray-700">
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">
                 Asignar a *
               </label>
 
-              <span className="text-xs text-gray-500">
+              <span className="text-xs text-slate-500 dark:text-slate-400">
                 {assigneeIds.length} seleccionados
               </span>
             </div>
 
-            <div className="max-h-40 overflow-y-auto rounded-lg border border-gray-200 bg-white">
+            <div className="max-h-40 overflow-y-auto rounded-lg border border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-900">
               {users.length > 0 ? (
                 users.map((user) => {
                   const checked = assigneeIds.includes(user.id);
@@ -180,21 +180,21 @@ export default function NewTaskModal({
                   return (
                     <label
                       key={user.id}
-                      className="flex cursor-pointer items-center gap-3 border-b border-gray-100 px-3 py-2 last:border-b-0 hover:bg-red-50"
+                      className="flex cursor-pointer items-center gap-3 border-b border-slate-100 px-3 py-2 last:border-b-0 hover:bg-red-50 dark:border-slate-700 dark:hover:bg-red-950/30"
                     >
                       <input
                         type="checkbox"
                         checked={checked}
                         onChange={() => toggleAssignee(user.id)}
-                        className="h-4 w-4 rounded border-gray-300 accent-red-600"
+                        className="h-4 w-4 rounded border-slate-300 accent-red-600 dark:border-slate-600"
                         disabled={isLoading}
                       />
 
                       <span className="min-w-0">
-                        <span className="block truncate text-sm font-medium text-gray-800">
+                        <span className="block truncate text-sm font-medium text-slate-800 dark:text-slate-100">
                           {user.name}
                         </span>
-                        <span className="block truncate text-xs text-gray-500">
+                        <span className="block truncate text-xs text-slate-500 dark:text-slate-400">
                           {user.email}
                         </span>
                       </span>
@@ -202,7 +202,7 @@ export default function NewTaskModal({
                   );
                 })
               ) : (
-                <div className="px-3 py-4 text-sm text-gray-500">
+                <div className="px-3 py-4 text-sm text-slate-500 dark:text-slate-400">
                   No hay usuarios disponibles.
                 </div>
               )}
@@ -211,7 +211,7 @@ export default function NewTaskModal({
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="mb-2 block text-sm font-medium text-gray-700">
+              <label className="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-300">
                 Prioridad
               </label>
               <select
@@ -219,7 +219,7 @@ export default function NewTaskModal({
                 onChange={(event) =>
                   setPriority(event.target.value as "low" | "medium" | "high")
                 }
-                className="h-10 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-900 outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500"
+                className="h-10 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm text-slate-900 outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 dark:border-slate-600 dark:bg-slate-900 dark:text-white"
                 disabled={isLoading}
               >
                 <option value="low">Baja</option>
@@ -229,7 +229,7 @@ export default function NewTaskModal({
             </div>
 
             <div>
-              <label className="mb-2 block text-sm font-medium text-gray-700">
+              <label className="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-300">
                 Horas estimadas
               </label>
               <input
@@ -243,7 +243,7 @@ export default function NewTaskModal({
                   )
                 }
                 placeholder="Ej: 4"
-                className="h-10 w-full rounded-lg border border-gray-300 px-3 text-sm text-gray-900 outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500"
+                className="h-10 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm text-slate-900 outline-none placeholder:text-slate-400 focus:border-red-500 focus:ring-1 focus:ring-red-500 dark:border-slate-600 dark:bg-slate-900 dark:text-white dark:placeholder:text-slate-500"
                 disabled={isLoading}
               />
             </div>
@@ -251,40 +251,40 @@ export default function NewTaskModal({
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-                <label className="mb-2 block text-sm font-medium text-gray-700">
+                <label className="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-300">
                 Fecha de inicio
                 </label>
                 <input
                 type="date"
                 value={startDate}
                 onChange={(event) => setStartDate(event.target.value)}
-                className="h-10 w-full rounded-lg border border-gray-300 px-3 text-sm text-gray-900 outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500"
+                className="h-10 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm text-slate-900 outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 dark:border-slate-600 dark:bg-slate-900 dark:text-white"
                 disabled={isLoading}
                 />
             </div>
 
             <div>
-                <label className="mb-2 block text-sm font-medium text-gray-700">
+                <label className="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-300">
                 Fecha de vencimiento
                 </label>
                 <input
                 type="date"
                 value={dueDate}
                 onChange={(event) => setDueDate(event.target.value)}
-                className="h-10 w-full rounded-lg border border-gray-300 px-3 text-sm text-gray-900 outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500"
+                className="h-10 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm text-slate-900 outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 dark:border-slate-600 dark:bg-slate-900 dark:text-white"
                 disabled={isLoading}
                 />
             </div>
             </div>
 
           {error && (
-            <div className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-600">
+            <div className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-600 dark:border-red-900/60 dark:bg-red-950/40 dark:text-red-300">
               {error}
             </div>
           )}
 
           {success && (
-            <div className="flex items-center gap-2 rounded-lg border border-green-200 bg-green-50 px-3 py-2 text-sm text-green-600">
+            <div className="flex items-center gap-2 rounded-lg border border-green-200 bg-green-50 px-3 py-2 text-sm text-green-600 dark:border-green-900/60 dark:bg-green-950/40 dark:text-green-300">
               <Check size={16} />
               {success}
             </div>
@@ -294,7 +294,7 @@ export default function NewTaskModal({
             <button
               type="button"
               onClick={onClose}
-              className="h-10 rounded-lg border border-gray-200 text-sm text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+              className="h-10 rounded-lg border border-slate-200 text-sm text-slate-700 hover:bg-slate-50 disabled:opacity-50 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-700"
               disabled={isLoading}
             >
               Cancelar

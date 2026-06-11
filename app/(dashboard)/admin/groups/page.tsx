@@ -54,13 +54,13 @@ function NewGroupModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
-      <div className="w-full max-w-md rounded-lg bg-white p-6 shadow-xl">
+      <div className="w-full max-w-md rounded-lg border border-slate-200 bg-white p-6 shadow-xl dark:border-slate-700 dark:bg-slate-800">
         <div className="mb-5 flex items-start justify-between gap-4">
           <div>
-            <h2 className="text-xl font-semibold text-gray-900">
+            <h2 className="text-xl font-semibold text-slate-900 dark:text-white">
               Crear Grupo
             </h2>
-            <p className="mt-1 text-sm text-gray-500">
+            <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
               Organiza tareas y miembros en un nuevo espacio de trabajo.
             </p>
           </div>
@@ -68,7 +68,7 @@ function NewGroupModal({
           <button
             type="button"
             onClick={onClose}
-            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-gray-500 hover:bg-gray-100 hover:text-gray-800 disabled:opacity-50"
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100 hover:text-slate-800 disabled:opacity-50 dark:text-slate-400 dark:hover:bg-slate-700 dark:hover:text-white"
             disabled={isLoading}
             aria-label="Cerrar"
             title="Cerrar"
@@ -79,29 +79,29 @@ function NewGroupModal({
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="mb-2 block text-sm font-medium text-gray-700">
+            <label className="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-300">
               Nombre del grupo
             </label>
             <input
               value={name}
               onChange={(event) => setName(event.target.value)}
               placeholder="Ej: Equipo de producto"
-              className="h-10 w-full rounded-lg border border-gray-300 px-3 text-sm text-gray-900 outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500"
+              className="h-10 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm text-slate-900 outline-none placeholder:text-slate-400 focus:border-red-500 focus:ring-1 focus:ring-red-500 dark:border-slate-600 dark:bg-slate-900 dark:text-white dark:placeholder:text-slate-500"
               disabled={isLoading}
             />
           </div>
 
           <div>
             <div className="mb-2 flex items-center justify-between gap-3">
-              <label className="block text-sm font-medium text-gray-700">
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">
                 Integrantes
               </label>
-              <span className="text-xs text-gray-500">
+              <span className="text-xs text-slate-500 dark:text-slate-400">
                 {selectedUserIds.length} seleccionados
               </span>
             </div>
 
-            <div className="max-h-52 overflow-y-auto rounded-lg border border-gray-200 bg-white">
+            <div className="max-h-52 overflow-y-auto rounded-lg border border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-900">
               {users.length > 0 ? (
                 users.map((user) => {
                   const checked = selectedUserIds.includes(user.id);
@@ -109,21 +109,21 @@ function NewGroupModal({
                   return (
                     <label
                       key={user.id}
-                      className="flex cursor-pointer items-center gap-3 border-b border-gray-100 px-3 py-2 last:border-b-0 hover:bg-red-50"
+                      className="flex cursor-pointer items-center gap-3 border-b border-slate-100 px-3 py-2 last:border-b-0 hover:bg-red-50 dark:border-slate-700 dark:hover:bg-red-950/30"
                     >
                       <input
                         type="checkbox"
                         checked={checked}
                         onChange={() => toggleUser(user.id)}
-                        className="h-4 w-4 rounded border-gray-300 accent-red-600"
+                        className="h-4 w-4 rounded border-slate-300 accent-red-600 dark:border-slate-600"
                         disabled={isLoading}
                       />
 
                       <span className="min-w-0">
-                        <span className="block truncate text-sm font-medium text-gray-800">
+                        <span className="block truncate text-sm font-medium text-slate-800 dark:text-slate-100">
                           {user.name}
                         </span>
-                        <span className="block truncate text-xs text-gray-500">
+                        <span className="block truncate text-xs text-slate-500 dark:text-slate-400">
                           {user.email}
                         </span>
                       </span>
@@ -131,7 +131,7 @@ function NewGroupModal({
                   );
                 })
               ) : (
-                <div className="px-3 py-4 text-sm text-gray-500">
+                <div className="px-3 py-4 text-sm text-slate-500 dark:text-slate-400">
                   No hay usuarios disponibles.
                 </div>
               )}
@@ -139,7 +139,7 @@ function NewGroupModal({
           </div>
 
           {error && (
-            <div className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-600">
+            <div className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-600 dark:border-red-900/60 dark:bg-red-950/40 dark:text-red-300">
               {error}
             </div>
           )}
@@ -148,7 +148,7 @@ function NewGroupModal({
             <button
               type="button"
               onClick={onClose}
-              className="h-10 rounded-lg border border-gray-200 text-sm text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+              className="h-10 rounded-lg border border-slate-200 text-sm text-slate-700 hover:bg-slate-50 disabled:opacity-50 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-700"
               disabled={isLoading}
             >
               Cancelar
@@ -261,22 +261,22 @@ export default function GroupsPage() {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-gray-50">
-        <p className="text-gray-600">Cargando grupos...</p>
+      <div className="flex min-h-screen items-center justify-center bg-slate-50 dark:bg-slate-950">
+        <p className="text-slate-600 dark:text-slate-400">Cargando grupos...</p>
       </div>
     );
   }
 
   return (
     <ProtectedRoute>
-      <div className="flex min-h-screen bg-gray-50">
+      <div className="flex min-h-screen bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-white">
         <main className="flex-1 p-8">
           <div className="mb-6 flex items-start justify-between gap-4">
             <div>
-              <h1 className="text-2xl font-semibold text-black">
+              <h1 className="text-2xl font-semibold text-slate-900 dark:text-white">
                 Grupos de Trabajo
               </h1>
-              <p className="text-gray-500">
+              <p className="text-slate-500 dark:text-slate-400">
                 Maneja las tareas por grupo
               </p>
             </div>
@@ -284,7 +284,7 @@ export default function GroupsPage() {
             <button
               type="button"
               onClick={() => setIsCreateModalOpen(true)}
-              className="inline-flex h-10 shrink-0 items-center gap-2 rounded-lg bg-red-600 px-4 text-sm font-medium text-white shadow-sm hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+              className="inline-flex h-10 shrink-0 items-center gap-2 rounded-lg bg-red-600 px-4 text-sm font-medium text-white shadow-sm hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 dark:focus:ring-offset-slate-950"
             >
               <Plus size={16} />
               Crear grupo
@@ -292,14 +292,14 @@ export default function GroupsPage() {
           </div>
 
           {error && (
-            <div className="mb-6 rounded border border-red-400 bg-red-100 px-4 py-3 text-red-700">
+            <div className="mb-6 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-red-700 dark:border-red-900/60 dark:bg-red-950/40 dark:text-red-300">
               {error}
             </div>
           )}
 
-          <div className="mb-6 rounded-xl border bg-white p-4">
+          <div className="mb-6 rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-800">
             <div className="flex flex-wrap items-center gap-3">
-              <span className="text-gray-600">Filtrar por persona:</span>
+              <span className="text-slate-600 dark:text-slate-300">Filtrar por persona:</span>
 
               {people.map((person, index) => (
                 <button
@@ -308,7 +308,7 @@ export default function GroupsPage() {
                   className={`rounded-lg px-4 py-1.5 text-sm ${
                     selectedPerson === person
                       ? "bg-red-500 text-white"
-                      : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                      : "bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-slate-700 dark:text-slate-300 dark:hover:bg-slate-600"
                   }`}
                 >
                   {person === "All" ? "Todos" : person}
@@ -327,47 +327,47 @@ export default function GroupsPage() {
                   <Link
                     key={group.id}
                     href={`/admin/groups/${group.id}`}
-                    className="block rounded-xl border bg-white p-5 shadow-sm transition hover:border-red-200 hover:shadow-md"
+                    className="block rounded-xl border border-slate-200 bg-white p-5 shadow-sm transition hover:border-red-200 hover:shadow-md dark:border-slate-700 dark:bg-slate-800 dark:hover:border-red-900"
                   >
-                    <h3 className="font-semibold text-black">
+                    <h3 className="font-semibold text-slate-900 dark:text-white">
                       {group.title}
                     </h3>
 
-                    <p className="mb-4 text-sm text-gray-500">
+                    <p className="mb-4 text-sm text-slate-500 dark:text-slate-400">
                       {group.description}
                     </p>
 
-                    <div className="mb-1 flex justify-between text-sm text-gray-600">
+                    <div className="mb-1 flex justify-between text-sm text-slate-600 dark:text-slate-400">
                       <span>Progress</span>
                       <span>
                         {group.progress} / {group.total}
                       </span>
                     </div>
 
-                    <div className="mb-4 h-2 w-full rounded-full bg-gray-200">
+                    <div className="mb-4 h-2 w-full rounded-full bg-slate-200 dark:bg-slate-700">
                       <div
                         className="h-2 rounded-full bg-red-500"
                         style={{ width: `${percent}%` }}
                       />
                     </div>
 
-                    <div className="mb-3 flex gap-4 text-sm text-gray-600">
+                    <div className="mb-3 flex gap-4 text-sm text-slate-600 dark:text-slate-400">
                       <span>○ {group.members.length}</span>
                       <span>○ {group.total}</span>
                     </div>
 
-                    <div className="flex flex-wrap gap-2 text-xs text-gray-600">
+                    <div className="flex flex-wrap gap-2 text-xs text-slate-600 dark:text-slate-300">
                       {group.members.slice(0, 5).map((member, memberIndex) => (
                         <span
                           key={`member-${group.id}-${memberIndex}`}
-                          className="rounded-md bg-gray-100 px-2 py-1"
+                          className="rounded-md bg-slate-100 px-2 py-1 dark:bg-slate-700"
                         >
                           {member}
                         </span>
                       ))}
 
                       {group.members.length > 5 && (
-                        <span className="rounded-md bg-gray-100 px-2 py-1">
+                        <span className="rounded-md bg-slate-100 px-2 py-1 dark:bg-slate-700">
                           +{group.members.length - 5}
                         </span>
                       )}
@@ -376,7 +376,7 @@ export default function GroupsPage() {
                 );
               })
             ) : (
-              <p className="col-span-2 text-gray-500">
+              <p className="col-span-2 text-slate-500 dark:text-slate-400">
                 No hay grupos disponibles para{" "}
                 {selectedPerson === "All" ? "todos" : selectedPerson}.
               </p>

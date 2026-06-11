@@ -1,7 +1,7 @@
 'use client';
 
 import { Calendar, ChevronLeft, UserRound, Loader2, Check } from "lucide-react";
-import { FormEvent, useMemo, useState, useEffect } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { GroupTask,
      Group, 
      fetchAllGroupsDataForAdmin, 
@@ -496,18 +496,18 @@ setTodoLists((current) => [...current, createdList]);
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-gray-50">
-        <p className="text-gray-600">Cargando grupo...</p>
+      <div className="flex min-h-screen items-center justify-center bg-slate-50 dark:bg-slate-950">
+        <p className="text-slate-600 dark:text-slate-400">Cargando grupo...</p>
       </div>
     );
   }
 
   if (!group || error) {
     return (
-      <div className="p-6 text-black">
+      <div className="min-h-screen bg-slate-50 p-6 text-slate-900 dark:bg-slate-950 dark:text-white">
         <Link
           href="/admin/groups"
-          className="mb-4 inline-flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900"
+          className="mb-4 inline-flex items-center gap-2 text-sm text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
         >
           <ChevronLeft size={16} />
           Volver a los Grupos
@@ -518,25 +518,25 @@ setTodoLists((current) => [...current, createdList]);
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 text-gray-900 p-8">
+    <div className="min-h-screen bg-slate-50 p-8 text-slate-900 dark:bg-slate-950 dark:text-white">
       <div className="max-w-5xl mx-auto">
-        <div className="mb-8 flex items-start justify-between border-b border-gray-200 pb-6">
+        <div className="mb-8 flex items-start justify-between border-b border-slate-200 pb-6 dark:border-slate-800">
           <div>
             <Link
               href="/admin/groups"
-              className="mb-3 inline-flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900"
+              className="mb-3 inline-flex items-center gap-2 text-sm text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
             >
               <ChevronLeft size={16} />
               Volver a los Grupos
             </Link>
-            <h1 className="text-3xl font-bold text-gray-900">{group.title}</h1>
-            <p className="mt-2 text-gray-600">{group.description}</p>
+            <h1 className="text-3xl font-bold text-slate-900 dark:text-white">{group.title}</h1>
+            <p className="mt-2 text-slate-600 dark:text-slate-400">{group.description}</p>
           </div>
 
           <div className="flex gap-3">
                 <button
                     onClick={() => setIsAddMemberModalOpen(true)}
-                    className="rounded-lg border border-red-200 bg-white px-6 py-2 text-sm font-medium text-red-600 hover:bg-red-50 transition"
+                    className="rounded-lg border border-red-200 bg-white px-6 py-2 text-sm font-medium text-red-600 transition hover:bg-red-50 dark:border-red-900/60 dark:bg-slate-900 dark:text-red-300 dark:hover:bg-red-950/40"
                 >
                     + Agregar integrante
                 </button>
@@ -563,8 +563,8 @@ setTodoLists((current) => [...current, createdList]);
             </div>
         </div>
 
-        <div className="mb-6 flex flex-wrap items-center gap-3 border-b border-gray-200 pb-4">
-          <span className="text-sm font-medium text-gray-700">Filtrar por:</span>
+        <div className="mb-6 flex flex-wrap items-center gap-3 border-b border-slate-200 pb-4 dark:border-slate-800">
+          <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Filtrar por:</span>
           {["All", ...groupMembers].map((person, index) => (
             <button
               key={`filter-${index}`}
@@ -572,7 +572,7 @@ setTodoLists((current) => [...current, createdList]);
               className={`rounded-lg px-4 py-1.5 text-sm font-medium transition ${
                 selectedPerson === person
                   ? "bg-red-600 text-white"
-                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                  : "bg-slate-100 text-slate-700 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
               }`}
             >
               {person === "All" ? "Todas" : person}
@@ -582,12 +582,12 @@ setTodoLists((current) => [...current, createdList]);
 
         <div className="mb-6">
           <div className="mb-2 flex justify-between text-sm">
-            <span className="font-medium text-gray-700">Progreso</span>
-            <span className="text-gray-600">
+            <span className="font-medium text-slate-700 dark:text-slate-300">Progreso</span>
+            <span className="text-slate-600 dark:text-slate-400">
               {completed} de {tasks.length} completadas
             </span>
           </div>
-          <div className="h-3 w-full rounded-full bg-gray-200 overflow-hidden">
+          <div className="h-3 w-full overflow-hidden rounded-full bg-slate-200 dark:bg-slate-800">
             <div
               className="h-3 rounded-full bg-gradient-to-r from-red-500 to-red-600 transition-all duration-300"
               style={{ width: `${percent}%` }}
@@ -595,17 +595,17 @@ setTodoLists((current) => [...current, createdList]);
           </div>
         </div>
 
-        <div className="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm">
+        <div className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-800">
           {filteredTasks.length === 0 ? (
             <div className="p-8 text-center">
-              <p className="text-gray-500">
+              <p className="text-slate-500 dark:text-slate-400">
                 {selectedPerson === "All"
                   ? "No hay tareas en este grupo. ¡Crea una nueva!"
                   : `No hay tareas asignadas a ${selectedPerson}`}
               </p>
             </div>
           ) : (
-            <div className="divide-y divide-gray-100">
+            <div className="divide-y divide-slate-100 dark:divide-slate-700">
               {filteredTasks.map((task, idx) => {
                 const date = formatDate(task.dueDate);
                 const completedTask = task.status === "completed";
@@ -626,14 +626,14 @@ setTodoLists((current) => [...current, createdList]);
                       className={`shrink-0 h-6 w-6 rounded-full border-2 flex items-center justify-center transition ${
                         completedTask
                           ? "border-red-500 bg-red-50"
-                          : "border-gray-300 hover:border-red-500"
+                          : "border-slate-300 hover:border-red-500 dark:border-slate-600"
                       } disabled:opacity-50`}
                     >
                       {completedTask && (
                         <Check size={14} className="text-red-600" />
                       )}
                       {isProcessing && (
-                        <Loader2 size={14} className="text-gray-400 animate-spin" />
+                        <Loader2 size={14} className="animate-spin text-slate-400" />
                       )}
                     </button>
 
@@ -641,13 +641,13 @@ setTodoLists((current) => [...current, createdList]);
                       <h3
                         className={`text-sm font-medium transition ${
                           completedTask
-                            ? "text-gray-400 line-through"
-                            : "text-gray-900"
+                            ? "text-slate-400 line-through dark:text-slate-500"
+                            : "text-slate-900 dark:text-white"
                         }`}
                       >
                         {task.title}
                       </h3>
-                      <div className="mt-2 flex flex-wrap items-center gap-4 text-xs text-gray-500">
+                      <div className="mt-2 flex flex-wrap items-center gap-4 text-xs text-slate-500 dark:text-slate-400">
                         <span className="inline-flex items-center gap-1">
                           <UserRound size={13} />
                           {task.assignee}
@@ -667,7 +667,7 @@ setTodoLists((current) => [...current, createdList]);
                           handleDeleteTask(task.id);
                         }}
                       disabled={deletingTask === task.id}
-                      className="shrink-0 opacity-0 group-hover:opacity-100 px-3 py-1 text-xs text-red-600 hover:bg-red-50 rounded transition disabled:opacity-50"
+                      className="shrink-0 rounded px-3 py-1 text-xs text-red-600 opacity-0 transition hover:bg-red-50 group-hover:opacity-100 disabled:opacity-50 dark:text-red-300 dark:hover:bg-red-950/40"
                     >
                       {deletingTask === task.id ? (
                         <Loader2 size={14} className="inline animate-spin" />
