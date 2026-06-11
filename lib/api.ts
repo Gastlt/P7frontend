@@ -60,6 +60,21 @@ export type TaskDTO = {
   sprint?: string | null;
 };
 
+export type UpdateTaskDTO = {
+  listId?: number;
+  title?: string;
+  description?: string | null;
+  status?: "pending" | "in_progress" | "completed";
+  priority?: "low" | "medium" | "high";
+  startDate?: string | null;
+  endDate?: string | null;
+  dueDate?: string | null;
+  createdById?: number;
+  sprintId?: number | null;
+  estimatedHours?: number | null;
+  actualHours?: number | null;
+};
+
 export async function createTask(payload: CreateTaskRequest): Promise<TaskDTO> {
   const response = await fetch(`${API_BASE_URL}/tasks`, {
     method: "POST",
@@ -134,16 +149,19 @@ export async function updateTaskStatus(
   return response.json();
 }
 
-export async function updateTask(taskId: number, data: Partial<TaskDTO>): Promise<TaskDTO> {
+export async function updateTask(taskId: number, taskData: UpdateTaskDTO) {
+  const token = localStorage.getItem("token");
+
   const response = await fetch(`${API_BASE_URL}/tasks/${taskId}`, {
     method: "PUT",
     headers: getAuthHeaders(),
-    body: JSON.stringify(data),
+    body: JSON.stringify(taskData),
   });
 
   if (!response.ok) {
     const errorText = await response.text();
-    throw new Error(errorText || "Error al actualizar la tarea");
+    console.error("Error updating task:", errorText);
+    throw new Error("Error al guardar los cambios");
   }
 
   return response.json();
