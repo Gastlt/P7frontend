@@ -13,7 +13,6 @@ import { GroupTask,
      fetchTodoListsByGroupId,
      createGroupMember,
      createTaskAssignment,
-     deleteTaskAssignment,
      deleteTaskAssignmentByTaskAndUser,
      User, } from "@/lib/groupsData";
 import Link from "next/link";
@@ -615,7 +614,7 @@ setTodoLists((current) => [...current, createdList]);
                   <div
                     key={`task-${task.id}-${idx}`}
                     onClick={() => openEditTaskModal(task)}
-                    className="flex cursor-pointer items-center gap-4 p-5 hover:bg-gray-50 transition group"
+                    className="group flex cursor-pointer items-center gap-4 p-5 transition hover:bg-slate-50 dark:hover:bg-slate-700/50"
                   >
                     <button
                         onClick={(e) => {
@@ -625,12 +624,12 @@ setTodoLists((current) => [...current, createdList]);
                       disabled={isProcessing}
                       className={`shrink-0 h-6 w-6 rounded-full border-2 flex items-center justify-center transition ${
                         completedTask
-                          ? "border-red-500 bg-red-50"
+                          ? "border-red-500 bg-red-50 dark:bg-red-950/40"
                           : "border-slate-300 hover:border-red-500 dark:border-slate-600"
                       } disabled:opacity-50`}
                     >
                       {completedTask && (
-                        <Check size={14} className="text-red-600" />
+                        <Check size={14} className="text-red-600 dark:text-red-400" />
                       )}
                       {isProcessing && (
                         <Loader2 size={14} className="animate-spin text-slate-400" />
@@ -685,25 +684,25 @@ setTodoLists((current) => [...current, createdList]);
 
       {showCreateList && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
-          <div className="w-full max-w-md rounded-2xl border border-gray-200 bg-white p-6 shadow-xl">
+          <div className="w-full max-w-md rounded-lg border border-slate-200 bg-white p-6 shadow-xl dark:border-slate-700 dark:bg-slate-800">
             <div className="mb-5">
-              <h2 className="text-lg font-semibold text-gray-900">
+              <h2 className="text-lg font-semibold text-slate-900 dark:text-white">
                 Crear lista
               </h2>
-              <p className="mt-1 text-sm text-gray-500">
+              <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
                 Crea una nueva lista de tareas para este grupo.
               </p>
             </div>
 
             {createListError && (
-              <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+              <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-900/60 dark:bg-red-950/40 dark:text-red-300">
                 {createListError}
               </div>
             )}
 
             <form onSubmit={handleCreateTodoList} className="space-y-4">
               <div>
-                <label className="mb-1 block text-sm font-medium text-gray-700">
+                <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
                   Nombre de la lista
                 </label>
 
@@ -718,12 +717,12 @@ setTodoLists((current) => [...current, createdList]);
                     }))
                   }
                   placeholder="Ej. Backlog, Pendientes, General"
-                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 outline-none transition focus:border-red-500 focus:ring-1 focus:ring-red-500"
+                  className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-red-500 focus:ring-1 focus:ring-red-500 dark:border-slate-600 dark:bg-slate-900 dark:text-white dark:placeholder:text-slate-500"
                 />
               </div>
 
-              <div className="rounded-lg bg-gray-50 px-3 py-2 text-sm text-gray-600">
-                Grupo: <span className="font-medium text-gray-900">{group.title}</span>
+              <div className="rounded-lg bg-slate-50 px-3 py-2 text-sm text-slate-600 dark:bg-slate-900 dark:text-slate-400">
+                Grupo: <span className="font-medium text-slate-900 dark:text-slate-100">{group.title}</span>
               </div>
 
               <div className="flex justify-end gap-2 pt-2">
@@ -737,7 +736,7 @@ setTodoLists((current) => [...current, createdList]);
                       groupId: "",
                     });
                   }}
-                  className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
+                  className="rounded-lg border border-slate-200 px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-700"
                 >
                   Cancelar
                 </button>
@@ -758,13 +757,13 @@ setTodoLists((current) => [...current, createdList]);
 
       {editingTask && (
   <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
-    <div className="w-full max-w-lg rounded-2xl border border-gray-200 bg-white p-6 shadow-xl">
+    <div className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-lg border border-slate-200 bg-white p-6 shadow-xl dark:border-slate-700 dark:bg-slate-800">
       <div className="mb-5 flex items-start justify-between gap-4">
         <div>
-          <h2 className="text-lg font-semibold text-gray-900">
+          <h2 className="text-lg font-semibold text-slate-900 dark:text-white">
             Editar tarea
           </h2>
-          <p className="mt-1 text-sm text-gray-500">
+          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
             Actualiza la información de la tarea seleccionada.
           </p>
         </div>
@@ -775,21 +774,23 @@ setTodoLists((current) => [...current, createdList]);
             setEditingTask(null);
             setEditTaskError("");
           }}
-          className="rounded-lg p-2 text-gray-500 transition hover:bg-gray-100"
+          className="rounded-lg p-2 text-slate-500 transition hover:bg-slate-100 hover:text-slate-800 dark:text-slate-400 dark:hover:bg-slate-700 dark:hover:text-white"
+          aria-label="Cerrar"
+          title="Cerrar"
         >
           ×
         </button>
       </div>
 
       {editTaskError && (
-        <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+        <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-900/60 dark:bg-red-950/40 dark:text-red-300">
           {editTaskError}
         </div>
       )}
 
       <form onSubmit={handleUpdateTask} className="space-y-4">
         <div>
-          <label className="mb-1 block text-sm font-medium text-gray-700">
+          <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
             Título
           </label>
           <input
@@ -801,12 +802,12 @@ setTodoLists((current) => [...current, createdList]);
                 title: e.target.value,
               }))
             }
-            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 outline-none transition focus:border-red-500 focus:ring-1 focus:ring-red-500"
+            className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none transition focus:border-red-500 focus:ring-1 focus:ring-red-500 dark:border-slate-600 dark:bg-slate-900 dark:text-white"
           />
         </div>
 
         <div>
-          <label className="mb-1 block text-sm font-medium text-gray-700">
+          <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
             Descripción
           </label>
           <textarea
@@ -818,13 +819,13 @@ setTodoLists((current) => [...current, createdList]);
               }))
             }
             rows={3}
-            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 outline-none transition focus:border-red-500 focus:ring-1 focus:ring-red-500"
+            className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none transition focus:border-red-500 focus:ring-1 focus:ring-red-500 dark:border-slate-600 dark:bg-slate-900 dark:text-white"
           />
         </div>
 
         <div className="grid gap-4 sm:grid-cols-2">
           <div>
-            <label className="mb-1 block text-sm font-medium text-gray-700">
+            <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
               Prioridad
             </label>
             <select
@@ -835,7 +836,7 @@ setTodoLists((current) => [...current, createdList]);
                   priority: e.target.value as "low" | "medium" | "high",
                 }))
               }
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 outline-none transition focus:border-red-500 focus:ring-1 focus:ring-red-500"
+              className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none transition focus:border-red-500 focus:ring-1 focus:ring-red-500 dark:border-slate-600 dark:bg-slate-900 dark:text-white"
             >
               <option value="low">Baja</option>
               <option value="medium">Media</option>
@@ -844,7 +845,7 @@ setTodoLists((current) => [...current, createdList]);
           </div>
 
           <div>
-            <label className="mb-1 block text-sm font-medium text-gray-700">
+            <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
               Estado
             </label>
             <select
@@ -858,7 +859,7 @@ setTodoLists((current) => [...current, createdList]);
                     | "completed",
                 }))
               }
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 outline-none transition focus:border-red-500 focus:ring-1 focus:ring-red-500"
+              className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none transition focus:border-red-500 focus:ring-1 focus:ring-red-500 dark:border-slate-600 dark:bg-slate-900 dark:text-white"
             >
               <option value="pending">Pendiente</option>
               <option value="in_progress">En progreso</option>
@@ -869,7 +870,7 @@ setTodoLists((current) => [...current, createdList]);
 
         <div className="grid gap-4 sm:grid-cols-2">
           <div>
-            <label className="mb-1 block text-sm font-medium text-gray-700">
+            <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
               Fecha límite
             </label>
             <input
@@ -881,12 +882,12 @@ setTodoLists((current) => [...current, createdList]);
                   dueDate: e.target.value,
                 }))
               }
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 outline-none transition focus:border-red-500 focus:ring-1 focus:ring-red-500"
+              className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none transition focus:border-red-500 focus:ring-1 focus:ring-red-500 dark:border-slate-600 dark:bg-slate-900 dark:text-white"
             />
           </div>
 
           <div>
-            <label className="mb-1 block text-sm font-medium text-gray-700">
+            <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
               Horas estimadas
             </label>
             <input
@@ -900,13 +901,13 @@ setTodoLists((current) => [...current, createdList]);
                   estimatedHours: e.target.value,
                 }))
               }
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 outline-none transition focus:border-red-500 focus:ring-1 focus:ring-red-500"
+              className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none transition focus:border-red-500 focus:ring-1 focus:ring-red-500 dark:border-slate-600 dark:bg-slate-900 dark:text-white"
             />
           </div>
         </div>
 
         <div>
-          <label className="mb-1 block text-sm font-medium text-gray-700">
+          <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
             Lista
           </label>
           <select
@@ -917,7 +918,7 @@ setTodoLists((current) => [...current, createdList]);
                 listId: e.target.value,
               }))
             }
-            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 outline-none transition focus:border-red-500 focus:ring-1 focus:ring-red-500"
+            className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none transition focus:border-red-500 focus:ring-1 focus:ring-red-500 dark:border-slate-600 dark:bg-slate-900 dark:text-white"
           >
             <option value="">Mantener lista actual</option>
             {todoLists.map((list) => (
@@ -930,16 +931,16 @@ setTodoLists((current) => [...current, createdList]);
 
         <div>
   <div className="mb-1 flex items-center justify-between">
-    <label className="block text-sm font-medium text-gray-700">
+    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">
       Asignar a *
     </label>
 
-    <span className="text-xs text-gray-500">
+    <span className="text-xs text-slate-500 dark:text-slate-400">
       {editTaskForm.assigneeIds.length} seleccionados
     </span>
   </div>
 
-  <div className="overflow-hidden rounded-lg border border-gray-300 bg-white">
+  <div className="overflow-hidden rounded-lg border border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-900">
     {users
       .filter((user) => group.members.includes(user.name))
       .map((user) => {
@@ -948,20 +949,20 @@ setTodoLists((current) => [...current, createdList]);
         return (
           <label
             key={user.id}
-            className="flex cursor-pointer items-center gap-3 border-b border-gray-100 px-3 py-3 last:border-b-0 hover:bg-gray-50"
+            className="flex cursor-pointer items-center gap-3 border-b border-slate-100 px-3 py-3 last:border-b-0 hover:bg-red-50 dark:border-slate-700 dark:hover:bg-red-950/30"
           >
             <input
               type="checkbox"
               checked={checked}
               onChange={() => toggleEditAssignee(user.id)}
-              className="h-4 w-4 rounded border-gray-300 text-red-600 focus:ring-red-500"
+              className="h-4 w-4 rounded border-slate-300 accent-red-600 dark:border-slate-600"
             />
 
             <div>
-              <p className="text-sm font-medium text-gray-900">
+              <p className="text-sm font-medium text-slate-900 dark:text-slate-100">
                 {user.name}
               </p>
-              <p className="text-xs text-gray-500">
+              <p className="text-xs text-slate-500 dark:text-slate-400">
                 {user.email}
               </p>
             </div>
@@ -978,7 +979,7 @@ setTodoLists((current) => [...current, createdList]);
               setEditingTask(null);
               setEditTaskError("");
             }}
-            className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
+            className="rounded-lg border border-slate-200 px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-700"
           >
             Cancelar
           </button>
